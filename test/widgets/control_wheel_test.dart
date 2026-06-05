@@ -30,8 +30,8 @@ void main() {
       ),
     );
 
-    // Verify home icon exists
-    expect(find.byIcon(Icons.home), findsOneWidget);
+    // Verify stop icon exists
+    expect(find.byIcon(Icons.stop), findsOneWidget);
 
     // Tap center home button
     final center = tester.getCenter(find.byType(ControlWheel));

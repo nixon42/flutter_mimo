@@ -238,7 +238,7 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         children: [
           const Text(
-            'Maju Mundur, Putar Kiri Kanan',
+            'Movement',
             style: TextStyle(
               color: Colors.white54,
               fontSize: 13,

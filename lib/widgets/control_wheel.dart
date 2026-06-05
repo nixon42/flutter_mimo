@@ -89,9 +89,9 @@ class ControlWheel extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.home,
-                      color: Colors.greenAccent[400],
-                      size: rHome * 1.1,
+                      Icons.stop,
+                      color: Colors.redAccent[400],
+                      size: rHome * 1.2,
                     ),
                   ),
                 ),
