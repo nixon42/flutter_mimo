@@ -165,11 +165,11 @@ class _ControlWheelPainter extends CustomPainter {
       canvas.drawLine(start, end, dividerPaint);
     }
 
-    // Draw labels: Y (Top), -Y (Bottom), X (Right), -X (Left)
-    _drawText(canvas, center, "Y", Offset(0, -(rOuter + rInner) / 2 - 15));
-    _drawText(canvas, center, "-Y", Offset(0, (rOuter + rInner) / 2 + 5));
-    _drawText(canvas, center, "X", Offset((rOuter + rInner) / 2 + 10, -5));
-    _drawText(canvas, center, "-X", Offset(-(rOuter + rInner) / 2 - 20, -5));
+    // Draw labels: Maju (Top), Mundur (Bottom), Putar Kanan (Right), Putar Kiri (Left)
+    _drawText(canvas, center, "Maju", Offset(0, -(rOuter + rInner) / 2 - 15), fontSize: 12);
+    _drawText(canvas, center, "Mundur", Offset(0, (rOuter + rInner) / 2 + 5), fontSize: 12);
+    _drawText(canvas, center, "Putar Kanan", Offset((rOuter + rInner) / 2 + 20, -5), fontSize: 10);
+    _drawText(canvas, center, "Putar Kiri", Offset(-(rOuter + rInner) / 2 - 20, -5), fontSize: 10);
 
     // Step labels
     final xAngle = -math.pi / 8;

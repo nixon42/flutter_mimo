@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class CameraTiltControl extends StatelessWidget {
-  final void Function(int step) onMoveCamera;
+class VolumeControl extends StatelessWidget {
+  final void Function(int step) onVolumeChange;
 
-  const CameraTiltControl({
+  const VolumeControl({
     super.key,
-    required this.onMoveCamera,
+    required this.onVolumeChange,
   });
 
   @override
@@ -19,12 +19,12 @@ class CameraTiltControl extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildButton('↑ 10', () => onMoveCamera(10)),
+          _buildButton('+10', () => onVolumeChange(10)),
           const SizedBox(width: 4),
-          _buildButton('↑ 1', () => onMoveCamera(1)),
+          _buildButton('+1', () => onVolumeChange(1)),
           const SizedBox(width: 12),
           const Text(
-            'Camera',
+            'Volume',
             style: TextStyle(
               color: Colors.white70,
               fontSize: 14,
@@ -32,9 +32,9 @@ class CameraTiltControl extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          _buildButton('↓ 1', () => onMoveCamera(-1)),
+          _buildButton('-1', () => onVolumeChange(-1)),
           const SizedBox(width: 4),
-          _buildButton('↓ 10', () => onMoveCamera(-10)),
+          _buildButton('-10', () => onVolumeChange(-10)),
         ],
       ),
     );

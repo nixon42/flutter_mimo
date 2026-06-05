@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/control_wheel.dart';
-import '../widgets/camera_tilt_control.dart';
+import '../widgets/volume_control.dart';
 import '../widgets/speaker_control.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -33,9 +33,9 @@ class DashboardScreen extends StatelessWidget {
                       _buildAxisControlCard(),
                       const SizedBox(height: 12),
                       
-                      // Card 3: Speaker & Audio controls
-                      _buildSpeakerControlCard(),
-                      const SizedBox(height: 12),
+                      // Card 3: Speaker & Audio controls (Hidden for now)
+                      // _buildSpeakerControlCard(),
+                      // const SizedBox(height: 12),
                     ],
                   ),
                 ),
@@ -66,11 +66,11 @@ class DashboardScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _buildTopTab('Printer Parts'),
+                _buildTopTab('Robot Info'),
                 const SizedBox(width: 8),
-                _buildTopTab('Print Options'),
+                _buildTopTab('Auto Mode'),
                 const SizedBox(width: 8),
-                _buildTopTab('Safety Options'),
+                _buildTopTab('Sensors'),
                 const SizedBox(width: 8),
                 _buildTopTab('Calibration'),
               ],
@@ -238,7 +238,7 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         children: [
           const Text(
-            'Axis Movement (X / Y)',
+            'Maju Mundur, Putar Kiri Kanan',
             style: TextStyle(
               color: Colors.white54,
               fontSize: 13,
@@ -255,8 +255,8 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          CameraTiltControl(
-            onMoveCamera: _handleMoveCamera,
+          VolumeControl(
+            onVolumeChange: _handleVolumeChange,
           ),
         ],
       ),
@@ -290,8 +290,8 @@ class DashboardScreen extends StatelessWidget {
     debugPrint("Move robot axis: $axis by $step");
   }
 
-  static void _handleMoveCamera(int step) {
-    debugPrint("Move Camera Tilt by $step");
+  static void _handleVolumeChange(int step) {
+    debugPrint("Volume adjusted by $step");
   }
 
   static void _handleSpeakerAction(String mode, int direction) {
