@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/control_wheel.dart';
-import '../widgets/bed_control.dart';
-import '../widgets/extruder_control.dart';
+import '../widgets/camera_tilt_control.dart';
+import '../widgets/speaker_control.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -25,16 +25,16 @@ class DashboardScreen extends StatelessWidget {
                   physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [
-                      // Card 1: Temperatures & Fans
-                      _buildTemperatureAndFanCard(),
+                      // Card 1: Robot Status & Indicators
+                      _buildStatusCard(),
                       const SizedBox(height: 12),
                       
-                      // Card 2: X/Y Axis and Z Bed controls
+                      // Card 2: X/Y Axis (Movement) and Camera Tilt controls
                       _buildAxisControlCard(),
                       const SizedBox(height: 12),
                       
-                      // Card 3: Extruder controls
-                      _buildExtruderControlCard(),
+                      // Card 3: Speaker & Audio controls
+                      _buildSpeakerControlCard(),
                       const SizedBox(height: 12),
                     ],
                   ),
@@ -103,7 +103,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTemperatureAndFanCard() {
+  Widget _buildStatusCard() {
     return Container(
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
@@ -119,11 +119,13 @@ class DashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildTempColumn(Icons.waves, 'Nozzle'),
+              _buildStatusColumn(Icons.battery_std, 'Battery', '85%'),
               Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
-              _buildTempColumn(Icons.single_bed, 'Bed'),
+              _buildStatusColumn(Icons.settings_input_antenna, 'Distance', '15 cm'),
               Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
-              _buildTempColumn(Icons.inventory_2_outlined, 'Chamber'),
+              _buildStatusColumn(Icons.wifi, 'Wifi', 'Robot_AP'),
+              Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
+              _buildStatusColumn(Icons.volume_up, 'Speaker Volume', '80%'),
             ],
           ),
           const Divider(color: Color(0xFF3B3C42), height: 20),
@@ -132,10 +134,10 @@ class DashboardScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.toys_outlined, color: Colors.white54, size: 20),
+                  const Icon(Icons.speed, color: Colors.white54, size: 20),
                   const SizedBox(width: 6),
                   const Text(
-                    'Fan',
+                    'Motor Speed',
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 13,
@@ -165,7 +167,7 @@ class DashboardScreen extends StatelessWidget {
                 onPressed: () {},
                 icon: const Icon(Icons.lightbulb_outline, color: Colors.white70, size: 20),
                 label: const Text(
-                  'Lamp',
+                  'LED Lights',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
@@ -187,33 +189,38 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTempColumn(IconData icon, String label) {
-    return Column(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white54, size: 16),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white54,
-                fontSize: 11,
+  Widget _buildStatusColumn(IconData icon, String label, String value) {
+    return Expanded(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white54, size: 16),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white54,
+                    fontSize: 10,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          '_ / _ °C',
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -248,15 +255,15 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          BedControl(
-            onMoveBed: _handleMoveBed,
+          CameraTiltControl(
+            onMoveCamera: _handleMoveCamera,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildExtruderControlCard() {
+  Widget _buildSpeakerControlCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
@@ -268,26 +275,26 @@ class DashboardScreen extends StatelessWidget {
           width: 1,
         ),
       ),
-      child: ExtruderControl(
-        onExtrude: _handleExtrude,
+      child: SpeakerControl(
+        onSpeakerAction: _handleSpeakerAction,
       ),
     );
   }
 
   // Callback handlers
   static void _handleHome() {
-    debugPrint("Home button pressed");
+    debugPrint("Dock/Stop button pressed");
   }
 
   static void _handleMoveAxis(String axis, double step) {
-    debugPrint("Move axis: $axis by $step");
+    debugPrint("Move robot axis: $axis by $step");
   }
 
-  static void _handleMoveBed(int step) {
-    debugPrint("Move Bed by $step");
+  static void _handleMoveCamera(int step) {
+    debugPrint("Move Camera Tilt by $step");
   }
 
-  static void _handleExtrude(String side, int direction) {
-    debugPrint("Extrude on side: $side, direction: $direction");
+  static void _handleSpeakerAction(String mode, int direction) {
+    debugPrint("Speaker action in mode: $mode, direction: $direction");
   }
 }

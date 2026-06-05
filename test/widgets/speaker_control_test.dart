@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_mimo/widgets/extruder_control.dart';
+import 'package:flutter_mimo/widgets/speaker_control.dart';
 
 void main() {
-  testWidgets('ExtruderControl renders tabs, arrows, and triggers callbacks', (WidgetTester tester) async {
-    String? selectedSide;
+  testWidgets('SpeakerControl renders tabs, volume buttons, and triggers callbacks', (WidgetTester tester) async {
+    String? selectedMode;
     int? clickedDirection;
 
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: ExtruderControl(
-            onExtrude: (side, direction) {
-              selectedSide = side;
+          body: SpeakerControl(
+            onSpeakerAction: (mode, direction) {
+              selectedMode = mode;
               clickedDirection = direction;
             },
           ),
@@ -20,31 +20,31 @@ void main() {
       ),
     );
 
-    // Verify "Extruder" label exists
-    expect(find.text('Extruder'), findsOneWidget);
+    // Verify "Speaker" label exists
+    expect(find.text('Speaker'), findsOneWidget);
 
     // Verify Tab buttons exist
-    expect(find.text('Left'), findsOneWidget);
-    expect(find.text('Right'), findsOneWidget);
+    expect(find.text('Buzzer'), findsOneWidget);
+    expect(find.text('Voice'), findsOneWidget);
 
-    // Verify arrow buttons exist
+    // Verify volume arrow buttons exist
     expect(find.byIcon(Icons.arrow_drop_up), findsOneWidget);
     expect(find.byIcon(Icons.arrow_drop_down), findsOneWidget);
 
-    // Default side is Left. Let's tap Up arrow.
+    // Default mode is Buzzer. Let's tap Up arrow.
     await tester.tap(find.byIcon(Icons.arrow_drop_up));
     await tester.pump();
-    expect(selectedSide, equals('Left'));
+    expect(selectedMode, equals('Buzzer'));
     expect(clickedDirection, equals(1));
 
-    // Select Right tab
-    await tester.tap(find.text('Right'));
+    // Select Voice tab
+    await tester.tap(find.text('Voice'));
     await tester.pumpAndSettle();
 
     // Tap Down arrow
     await tester.tap(find.byIcon(Icons.arrow_drop_down));
     await tester.pump();
-    expect(selectedSide, equals('Right'));
+    expect(selectedMode, equals('Voice'));
     expect(clickedDirection, equals(-1));
   });
 }

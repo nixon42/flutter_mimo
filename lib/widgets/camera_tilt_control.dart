@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class BedControl extends StatelessWidget {
-  final void Function(int step) onMoveBed;
+class CameraTiltControl extends StatelessWidget {
+  final void Function(int step) onMoveCamera;
 
-  const BedControl({
+  const CameraTiltControl({
     super.key,
-    required this.onMoveBed,
+    required this.onMoveCamera,
   });
 
   @override
@@ -19,12 +19,12 @@ class BedControl extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildButton('↑ 10', () => onMoveBed(10)),
+          _buildButton('↑ 10', () => onMoveCamera(10)),
           const SizedBox(width: 4),
-          _buildButton('↑ 1', () => onMoveBed(1)),
+          _buildButton('↑ 1', () => onMoveCamera(1)),
           const SizedBox(width: 12),
           const Text(
-            'Bed',
+            'Camera',
             style: TextStyle(
               color: Colors.white70,
               fontSize: 14,
@@ -32,9 +32,9 @@ class BedControl extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          _buildButton('↓ 1', () => onMoveBed(-1)),
+          _buildButton('↓ 1', () => onMoveCamera(-1)),
           const SizedBox(width: 4),
-          _buildButton('↓ 10', () => onMoveBed(-10)),
+          _buildButton('↓ 10', () => onMoveCamera(-10)),
         ],
       ),
     );

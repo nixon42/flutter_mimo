@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-class ExtruderControl extends StatefulWidget {
-  final void Function(String side, int direction) onExtrude;
+class SpeakerControl extends StatefulWidget {
+  final void Function(String soundMode, int direction) onSpeakerAction;
 
-  const ExtruderControl({
+  const SpeakerControl({
     super.key,
-    required this.onExtrude,
+    required this.onSpeakerAction,
   });
 
   @override
-  State<ExtruderControl> createState() => _ExtruderControlState();
+  State<SpeakerControl> createState() => _SpeakerControlState();
 }
 
-class _ExtruderControlState extends State<ExtruderControl> {
-  String _selectedSide = 'Left';
+class _SpeakerControlState extends State<SpeakerControl> {
+  String _selectedMode = 'Buzzer';
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class _ExtruderControlState extends State<ExtruderControl> {
           child: Stack(
             children: [
               AnimatedAlign(
-                alignment: _selectedSide == 'Left' ? Alignment.centerLeft : Alignment.centerRight,
+                alignment: _selectedMode == 'Buzzer' ? Alignment.centerLeft : Alignment.centerRight,
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
                 child: Container(
@@ -57,15 +57,15 @@ class _ExtruderControlState extends State<ExtruderControl> {
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
-                          _selectedSide = 'Left';
+                          _selectedMode = 'Buzzer';
                         });
                       },
                       behavior: HitTestBehavior.opaque,
                       child: Center(
                         child: Text(
-                          'Left',
+                          'Buzzer',
                           style: TextStyle(
-                            color: _selectedSide == 'Left' ? Colors.black87 : Colors.black45,
+                            color: _selectedMode == 'Buzzer' ? Colors.black87 : Colors.black45,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -77,15 +77,15 @@ class _ExtruderControlState extends State<ExtruderControl> {
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
-                          _selectedSide = 'Right';
+                          _selectedMode = 'Voice';
                         });
                       },
                       behavior: HitTestBehavior.opaque,
                       child: Center(
                         child: Text(
-                          'Right',
+                          'Voice',
                           style: TextStyle(
-                            color: _selectedSide == 'Right' ? Colors.black87 : Colors.black45,
+                            color: _selectedMode == 'Voice' ? Colors.black87 : Colors.black45,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -100,23 +100,23 @@ class _ExtruderControlState extends State<ExtruderControl> {
         ),
         const SizedBox(height: 24),
         
-        // Extrude up (▲)
-        _buildExtrudeButton(
+        // Volume up (▲)
+        _buildVolumeButton(
           icon: Icons.arrow_drop_up,
-          onPressed: () => widget.onExtrude(_selectedSide, 1),
+          onPressed: () => widget.onSpeakerAction(_selectedMode, 1),
         ),
         const SizedBox(height: 16),
         
-        // Extrude down (▼)
-        _buildExtrudeButton(
+        // Volume down (▼)
+        _buildVolumeButton(
           icon: Icons.arrow_drop_down,
-          onPressed: () => widget.onExtrude(_selectedSide, -1),
+          onPressed: () => widget.onSpeakerAction(_selectedMode, -1),
         ),
         const SizedBox(height: 12),
         
         // Label
         const Text(
-          'Extruder',
+          'Speaker',
           style: TextStyle(
             color: Colors.white60,
             fontSize: 14,
@@ -127,7 +127,7 @@ class _ExtruderControlState extends State<ExtruderControl> {
     );
   }
 
-  Widget _buildExtrudeButton({required IconData icon, required VoidCallback onPressed}) {
+  Widget _buildVolumeButton({required IconData icon, required VoidCallback onPressed}) {
     return SizedBox(
       width: 56,
       height: 56,

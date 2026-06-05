@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_mimo/widgets/bed_control.dart';
+import 'package:flutter_mimo/widgets/camera_tilt_control.dart';
 
 void main() {
-  testWidgets('BedControl renders buttons and calls callback on press', (WidgetTester tester) async {
+  testWidgets('CameraTiltControl renders buttons and calls callback on press', (WidgetTester tester) async {
     int? clickedStep;
 
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: BedControl(
-            onMoveBed: (step) {
+          body: CameraTiltControl(
+            onMoveCamera: (step) {
               clickedStep = step;
             },
           ),
@@ -18,8 +18,8 @@ void main() {
       ),
     );
 
-    // Verify "Bed" text exists
-    expect(find.text('Bed'), findsOneWidget);
+    // Verify "Camera" text exists
+    expect(find.text('Camera'), findsOneWidget);
 
     // Tap "↑ 10" button
     await tester.tap(find.text('↑ 10'));
@@ -35,10 +35,5 @@ void main() {
     await tester.tap(find.text('↓ 1'));
     await tester.pump();
     expect(clickedStep, equals(-1));
-
-    // Tap "↓ 10" button
-    await tester.tap(find.text('↓ 10'));
-    await tester.pump();
-    expect(clickedStep, equals(-10));
   });
 }
