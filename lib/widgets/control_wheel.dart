@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-class ControlWheel extends StatelessWidget {
+class ControlWheel extends StatefulWidget {
   final VoidCallback onHome;
   final void Function(String axis, double value) onMove;
 
@@ -10,6 +10,14 @@ class ControlWheel extends StatelessWidget {
     required this.onHome,
     required this.onMove,
   });
+
+  @override
+  State<ControlWheel> createState() => _ControlWheelState();
+}
+
+class _ControlWheelState extends State<ControlWheel> {
+  String? _activeAxis;
+  double? _activeValue;
 
   @override
   Widget build(BuildContext context) {
@@ -21,82 +29,101 @@ class ControlWheel extends StatelessWidget {
         final rInner = size * 0.35; 
         final rOuter = size * 0.5; 
 
-        return GestureDetector(
-          onTapDown: (details) {
-            final localPos = details.localPosition;
-            final dx = localPos.dx - center;
-            final dy = localPos.dy - center;
-            final distance = math.sqrt(dx * dx + dy * dy);
+        return SizedBox(
+          width: size,
+          height: size,
+          child: Stack(
+            children: [
+              // Background Segmented Pad with touch listener
+              Positioned.fill(
+                child: GestureDetector(
+                  onTapDown: (details) {
+                    final localPos = details.localPosition;
+                    final dx = localPos.dx - center;
+                    final dy = localPos.dy - center;
+                    final distance = math.sqrt(dx * dx + dy * dy);
 
-            if (distance < rHome) {
-              onHome();
-              return;
-            }
+                    if (distance < rHome || distance > rOuter) {
+                      return; // Inside stop button or outside the wheel
+                    }
 
-            if (distance > rOuter) {
-              return; // Tapped outside the circle
-            }
+                    final angle = math.atan2(dy, dx);
+                    String axis;
+                    double multiplier;
 
-            final angle = math.atan2(dy, dx);
-            // Angle ranges:
-            // Right (X): -pi/4 to pi/4
-            // Bottom (-Y): pi/4 to 3*pi/4
-            // Left (-X): 3*pi/4 to pi or -pi to -3*pi/4
-            // Top (Y): -3*pi/4 to -pi/4
+                    if (angle >= -math.pi / 4 && angle < math.pi / 4) {
+                      axis = 'X';
+                      multiplier = 1.0;
+                    } else if (angle >= math.pi / 4 && angle < 3 * math.pi / 4) {
+                      axis = 'Y';
+                      multiplier = -1.0;
+                    } else if (angle >= -3 * math.pi / 4 && angle < -math.pi / 4) {
+                      axis = 'Y';
+                      multiplier = 1.0;
+                    } else {
+                      axis = 'X';
+                      multiplier = -1.0;
+                    }
 
-            String axis;
-            double multiplier;
+                    final isInner = distance < rInner;
+                    final value = (isInner ? 1.0 : 10.0) * multiplier;
 
-            if (angle >= -math.pi / 4 && angle < math.pi / 4) {
-              axis = 'X';
-              multiplier = 1.0;
-            } else if (angle >= math.pi / 4 && angle < 3 * math.pi / 4) {
-              axis = 'Y';
-              multiplier = -1.0;
-            } else if (angle >= -3 * math.pi / 4 && angle < -math.pi / 4) {
-              axis = 'Y';
-              multiplier = 1.0;
-            } else {
-              axis = 'X';
-              multiplier = -1.0;
-            }
+                    setState(() {
+                      _activeAxis = axis;
+                      _activeValue = value;
+                    });
 
-            final isInner = distance < rInner;
-            final value = (isInner ? 1.0 : 10.0) * multiplier;
-
-            onMove(axis, value);
-          },
-          child: SizedBox(
-            width: size,
-            height: size,
-            child: Stack(
-              children: [
-                Positioned.fill(
+                    widget.onMove(axis, value);
+                  },
+                  onTapUp: (_) {
+                    setState(() {
+                      _activeAxis = null;
+                      _activeValue = null;
+                    });
+                  },
+                  onTapCancel: () {
+                    setState(() {
+                      _activeAxis = null;
+                      _activeValue = null;
+                    });
+                  },
                   child: CustomPaint(
                     painter: _ControlWheelPainter(
                       rHome: rHome,
                       rInner: rInner,
                       rOuter: rOuter,
+                      activeAxis: _activeAxis,
+                      activeValue: _activeValue,
                     ),
                   ),
                 ),
-                Center(
-                  child: Container(
-                    width: rHome * 2,
-                    height: rHome * 2,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF28282D),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.stop,
-                      color: Colors.redAccent[400],
-                      size: rHome * 1.2,
+              ),
+              
+              // Center Stop Button with InkWell ripple effect
+              Center(
+                child: ClipOval(
+                  child: Material(
+                    color: const Color(0xFF28282D),
+                    child: InkWell(
+                      onTap: widget.onHome,
+                      splashColor: Colors.redAccent.withOpacity(0.3),
+                      highlightColor: Colors.redAccent.withOpacity(0.15),
+                      child: SizedBox(
+                        width: rHome * 2,
+                        height: rHome * 2,
+                        child: Center(
+                          child: Icon(
+                            Icons.stop,
+                            color: Colors.redAccent[400],
+                            size: rHome * 1.2,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -104,25 +131,35 @@ class ControlWheel extends StatelessWidget {
   }
 }
 
+class _SegmentData {
+  final String axis;
+  final double value;
+  final double startAngle;
+  final double sweepAngle;
+  final double innerRadius;
+  final double outerRadius;
+
+  _SegmentData(this.axis, this.value, this.startAngle, this.sweepAngle, this.innerRadius, this.outerRadius);
+}
+
 class _ControlWheelPainter extends CustomPainter {
   final double rHome;
   final double rInner;
   final double rOuter;
+  final String? activeAxis;
+  final double? activeValue;
 
   _ControlWheelPainter({
     required this.rHome,
     required this.rInner,
     required this.rOuter,
+    required this.activeAxis,
+    required this.activeValue,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-
-    // Paints
-    final bgPaint = Paint()
-      ..color = const Color(0xFF38393F)
-      ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()
       ..color = const Color(0xFF1E1E22)
@@ -134,17 +171,36 @@ class _ControlWheelPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
 
-    // Draw background outer circle
-    canvas.drawCircle(center, rOuter, bgPaint);
+    // Define all 8 segments
+    final segments = [
+      // Right (X)
+      _SegmentData('X', 1.0, -math.pi / 4, math.pi / 2, rHome, rInner),
+      _SegmentData('X', 10.0, -math.pi / 4, math.pi / 2, rInner, rOuter),
+      // Bottom (-Y / Mundur)
+      _SegmentData('Y', -1.0, math.pi / 4, math.pi / 2, rHome, rInner),
+      _SegmentData('Y', -10.0, math.pi / 4, math.pi / 2, rInner, rOuter),
+      // Left (-X / Kiri)
+      _SegmentData('X', -1.0, 3 * math.pi / 4, math.pi / 2, rHome, rInner),
+      _SegmentData('X', -10.0, 3 * math.pi / 4, math.pi / 2, rInner, rOuter),
+      // Top (Y / Maju)
+      _SegmentData('Y', 1.0, -3 * math.pi / 4, math.pi / 2, rHome, rInner),
+      _SegmentData('Y', 10.0, -3 * math.pi / 4, math.pi / 2, rInner, rOuter),
+    ];
 
-    // Draw inner ring shading
-    final innerRingPaint = Paint()
-      ..color = const Color(0xFF42434A)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, rInner, innerRingPaint);
+    // Paint each segment
+    for (final seg in segments) {
+      final isOuter = seg.innerRadius == rInner;
+      final isActive = activeAxis == seg.axis && activeValue == seg.value;
 
-    // Draw home ring background
-    canvas.drawCircle(center, rHome, bgPaint);
+      final paint = Paint()
+        ..color = isActive
+            ? const Color(0xFF5E606A) // Highlighted color
+            : (isOuter ? const Color(0xFF38393F) : const Color(0xFF42434A))
+        ..style = PaintingStyle.fill;
+
+      final path = _getSegmentPath(center, seg.innerRadius, seg.outerRadius, seg.startAngle, seg.sweepAngle);
+      canvas.drawPath(path, paint);
+    }
 
     // Draw concentric ring outlines
     canvas.drawCircle(center, rOuter, borderPaint);
@@ -197,6 +253,35 @@ class _ControlWheelPainter extends CustomPainter {
     _drawText(canvas, center, "-10", pMinus10, fontSize: 11, color: Colors.white38);
   }
 
+  Path _getSegmentPath(Offset center, double innerRadius, double outerRadius, double startAngle, double sweepAngle) {
+    final path = Path();
+    
+    // Inner arc
+    path.arcTo(
+      Rect.fromCircle(center: center, radius: innerRadius),
+      startAngle,
+      sweepAngle,
+      true,
+    );
+    
+    // Line to outer arc
+    path.lineTo(
+      center.dx + outerRadius * math.cos(startAngle + sweepAngle),
+      center.dy + outerRadius * math.sin(startAngle + sweepAngle),
+    );
+    
+    // Outer arc (reverse direction)
+    path.arcTo(
+      Rect.fromCircle(center: center, radius: outerRadius),
+      startAngle + sweepAngle,
+      -sweepAngle,
+      false,
+    );
+    
+    path.close();
+    return path;
+  }
+
   void _drawText(Canvas canvas, Offset center, String text, Offset offset, {double fontSize = 14, Color color = Colors.white70}) {
     final textPainter = TextPainter(
       text: TextSpan(
@@ -217,5 +302,7 @@ class _ControlWheelPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _ControlWheelPainter oldDelegate) {
+    return oldDelegate.activeAxis != activeAxis || oldDelegate.activeValue != activeValue;
+  }
 }
