@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
@@ -18,6 +19,22 @@ class ControlWheel extends StatefulWidget {
 class _ControlWheelState extends State<ControlWheel> {
   String? _activeAxis;
   double? _activeValue;
+  Timer? _moveTimer;
+
+  @override
+  void dispose() {
+    _moveTimer?.cancel();
+    super.dispose();
+  }
+
+  void _stopMovement() {
+    _moveTimer?.cancel();
+    _moveTimer = null;
+    setState(() {
+      _activeAxis = null;
+      _activeValue = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,18 +91,17 @@ class _ControlWheelState extends State<ControlWheel> {
                     });
 
                     widget.onMove(axis, value);
+
+                    _moveTimer?.cancel();
+                    _moveTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+                      widget.onMove(axis, value);
+                    });
                   },
                   onTapUp: (_) {
-                    setState(() {
-                      _activeAxis = null;
-                      _activeValue = null;
-                    });
+                    _stopMovement();
                   },
                   onTapCancel: () {
-                    setState(() {
-                      _activeAxis = null;
-                      _activeValue = null;
-                    });
+                    _stopMovement();
                   },
                   child: CustomPaint(
                     painter: _ControlWheelPainter(
@@ -224,8 +240,8 @@ class _ControlWheelPainter extends CustomPainter {
     // Draw labels: Maju (Top), Mundur (Bottom), Putar Kanan (Right), Putar Kiri (Left)
     _drawText(canvas, center, "Maju", Offset(0, -(rOuter + rInner) / 2 - 15), fontSize: 12);
     _drawText(canvas, center, "Mundur", Offset(0, (rOuter + rInner) / 2 + 5), fontSize: 12);
-    _drawText(canvas, center, "Putar Kanan", Offset((rOuter + rInner) / 2 + 20, -5), fontSize: 10);
-    _drawText(canvas, center, "Putar Kiri", Offset(-(rOuter + rInner) / 2 - 20, -5), fontSize: 10);
+    _drawText(canvas, center, "Kanan", Offset((rOuter + rInner) / 2 + 20, -5), fontSize: 10);
+    _drawText(canvas, center, "Kiri", Offset(-(rOuter + rInner) / 2 - 20, -5), fontSize: 10);
 
     // Step labels
     final xAngle = -math.pi / 8;
