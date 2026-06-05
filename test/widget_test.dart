@@ -7,7 +7,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Verify that the title 'Control' is present.
-    expect(find.text('Control'), findsOneWidget);
+    // Verify that the title 'Mimo Control' is present.
+    expect(find.text('Mimo Control'), findsOneWidget);
   });
 }

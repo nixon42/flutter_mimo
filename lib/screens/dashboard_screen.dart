@@ -12,55 +12,30 @@ class DashboardScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF1E1F22),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           child: Column(
             children: [
               // Top Navigation Bar
               _buildTopBar(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               
-              // Main Control Panels
+              // Main Control Panels (Scrollable for Portrait Mobile)
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2B2D31),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFF3B3C42),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Row(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
                     children: [
-                      // Left Column: Temperature and Fan controls
-                      Expanded(
-                        flex: 3,
-                        child: _buildLeftPanel(),
-                      ),
+                      // Card 1: Temperatures & Fans
+                      _buildTemperatureAndFanCard(),
+                      const SizedBox(height: 12),
                       
-                      // Divider
-                      Container(
-                        width: 1.5,
-                        color: const Color(0xFF3B3C42),
-                      ),
+                      // Card 2: X/Y Axis and Z Bed controls
+                      _buildAxisControlCard(),
+                      const SizedBox(height: 12),
                       
-                      // Middle Column: Circular X/Y control and Bed controls
-                      Expanded(
-                        flex: 5,
-                        child: _buildMiddlePanel(),
-                      ),
-                      
-                      // Divider
-                      Container(
-                        width: 1.5,
-                        color: const Color(0xFF3B3C42),
-                      ),
-                      
-                      // Right Column: Extruder controls
-                      Expanded(
-                        flex: 3,
-                        child: _buildRightPanel(),
-                      ),
+                      // Card 3: Extruder controls
+                      _buildExtruderControlCard(),
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
@@ -77,13 +52,14 @@ class DashboardScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
-          'Control',
+          'Mimo Control',
           style: TextStyle(
             color: Color(0xFFE38B57), // Peach color from image
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
+        const SizedBox(width: 12),
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -107,10 +83,10 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildTopTab(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
         color: const Color(0xFF38393F),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: const Color(0xFF4B4C52),
           width: 1,
@@ -120,98 +96,89 @@ class DashboardScreen extends StatelessWidget {
         label,
         style: const TextStyle(
           color: Colors.white70,
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  Widget _buildLeftPanel() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+  Widget _buildTemperatureAndFanCard() {
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2B2D31),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF3B3C42),
+          width: 1,
+        ),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nozzle Temp Row
-          _buildTempRow(Icons.waves, 'Nozzle'),
-          const Divider(color: Color(0xFF3B3C42), height: 24),
-          
-          // Bed Temp Row
-          _buildTempRow(Icons.single_bed, 'Bed'),
-          const Divider(color: Color(0xFF3B3C42), height: 24),
-          
-          // Chamber Temp Row
-          _buildTempRow(Icons.inventory_2_outlined, 'Chamber'),
-          const Divider(color: Color(0xFF3B3C42), height: 24),
-          
-          // Fan Title
-          const Row(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Icon(Icons.toys_outlined, color: Colors.white54, size: 22),
-              SizedBox(width: 8),
-              Text(
-                'Fan',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              _buildTempColumn(Icons.waves, 'Nozzle'),
+              Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
+              _buildTempColumn(Icons.single_bed, 'Bed'),
+              Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
+              _buildTempColumn(Icons.inventory_2_outlined, 'Chamber'),
             ],
           ),
-          const SizedBox(height: 12),
-          
-          // Fan controls row
+          const Divider(color: Color(0xFF3B3C42), height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Speed
-              Column(
+              Row(
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF38393F),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.speed, color: Colors.white70, size: 22),
-                  ),
-                  const SizedBox(height: 6),
+                  const Icon(Icons.toys_outlined, color: Colors.white54, size: 20),
+                  const SizedBox(width: 6),
                   const Text(
-                    '100%',
+                    'Fan',
                     style: TextStyle(
-                      color: Colors.white54,
-                      fontSize: 12,
+                      color: Colors.white70,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF38393F),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      '100%',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
               ),
-              
-              // Lamp
-              Column(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF38393F),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.lightbulb_outline, color: Colors.white70, size: 22),
+              Container(width: 1, height: 20, color: const Color(0xFF3B3C42)),
+              TextButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.lightbulb_outline, color: Colors.white70, size: 20),
+                label: const Text(
+                  'Lamp',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Lamp',
-                    style: TextStyle(
-                      color: Colors.white54,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+                ),
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFF38393F),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -220,47 +187,67 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTempRow(IconData icon, String label) {
-    return Row(
+  Widget _buildTempColumn(IconData icon, String label) {
+    return Column(
       children: [
-        Icon(icon, color: Colors.white54, size: 22),
-        const SizedBox(width: 12),
-        const Expanded(
-          child: Text(
-            '_  /  _   °C',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 18,
-              letterSpacing: 2,
-              fontWeight: FontWeight.bold,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white54, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white54,
+                fontSize: 11,
+              ),
             ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          '_ / _ °C',
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMiddlePanel() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+  Widget _buildAxisControlCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2B2D31),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF3B3C42),
+          width: 1,
+        ),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Axis Control Wheel
-          const Expanded(
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 1.0,
-                child: ControlWheel(
-                  onHome: _handleHome,
-                  onMove: _handleMoveAxis,
-                ),
-              ),
+          const Text(
+            'Axis Movement (X / Y)',
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 20),
-          
-          // Bed Z Controls
+          const SizedBox(height: 16),
+          const SizedBox(
+            width: 250,
+            height: 250,
+            child: ControlWheel(
+              onHome: _handleHome,
+              onMove: _handleMoveAxis,
+            ),
+          ),
+          const SizedBox(height: 16),
           BedControl(
             onMoveBed: _handleMoveBed,
           ),
@@ -269,18 +256,25 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRightPanel() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: ExtruderControl(
-          onExtrude: _handleExtrude,
+  Widget _buildExtruderControlCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2B2D31),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF3B3C42),
+          width: 1,
         ),
+      ),
+      child: ExtruderControl(
+        onExtrude: _handleExtrude,
       ),
     );
   }
 
-  // Callback handlers (Mocked logic for display)
+  // Callback handlers
   static void _handleHome() {
     debugPrint("Home button pressed");
   }

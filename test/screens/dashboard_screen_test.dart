@@ -14,7 +14,7 @@ void main() {
     );
 
     // Verify header tabs
-    expect(find.text('Control'), findsOneWidget);
+    expect(find.text('Mimo Control'), findsOneWidget);
     expect(find.text('Printer Parts'), findsOneWidget);
     expect(find.text('Print Options'), findsOneWidget);
     expect(find.text('Safety Options'), findsOneWidget);
