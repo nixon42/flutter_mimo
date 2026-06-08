@@ -48,37 +48,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildActivePanel() {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        final isLandscape = orientation == Orientation.landscape;
-        switch (_activeTab) {
-          case 'Robot Info':
-            if (isLandscape) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 4,
-                    child: _buildStatusCard(),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 5,
-                    child: _buildAxisControlCard(isLandscape: true),
-                  ),
-                ],
-              );
-            } else {
-              return Column(
-                children: [
-                  _buildStatusCard(),
-                  const SizedBox(height: 12),
-                  _buildAxisControlCard(isLandscape: false),
-                ],
-              );
-            }
-          case 'Auto Mode':
-            return CarCompanionCard(serviceManager: widget.serviceManager);
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+
+    switch (_activeTab) {
+      case 'Robot Info':
+        return Column(
+          children: [
+            _buildStatusCard(),
+            const SizedBox(height: 12),
+            _buildAxisControlCard(isLandscape: isLandscape),
+          ],
+        );
+      case 'Auto Mode':
+        return CarCompanionCard(serviceManager: widget.serviceManager);
       case 'Sensors':
         return Container(
           padding: const EdgeInsets.all(24),
@@ -118,8 +101,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       default:
         return const SizedBox.shrink();
     }
-      },
-    );
   }
 
   Widget _buildTopBar() {
