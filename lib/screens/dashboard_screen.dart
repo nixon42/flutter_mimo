@@ -53,13 +53,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     switch (_activeTab) {
       case 'Robot Info':
-        return Column(
-          children: [
-            _buildStatusCard(),
-            const SizedBox(height: 12),
-            _buildAxisControlCard(isLandscape: isLandscape),
-          ],
-        );
+        if (isLandscape) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 4,
+                child: _buildStatusCard(isLandscape: true),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 5,
+                child: _buildAxisControlCard(isLandscape: false),
+              ),
+            ],
+          );
+        } else {
+          return Column(
+            children: [
+              _buildStatusCard(isLandscape: false),
+              const SizedBox(height: 12),
+              _buildAxisControlCard(isLandscape: false),
+            ],
+          );
+        }
       case 'Auto Mode':
         return CarCompanionCard(serviceManager: widget.serviceManager);
       case 'Sensors':
@@ -167,7 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStatusCard() {
+  Widget _buildStatusCard({bool isLandscape = false}) {
     return Container(
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
@@ -180,112 +197,187 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildStatusColumn(Icons.battery_std, 'Battery', '85%'),
-              Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
-              _buildStatusColumn(Icons.settings_input_antenna, 'Distance', '15 cm'),
-              Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
-              _buildStatusColumn(Icons.wifi, 'Wifi', 'Robot_AP'),
-              Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
-              _buildStatusColumn(Icons.volume_up, 'Speaker Volume', '80%'),
-            ],
-          ),
+          isLandscape
+              ? Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.spaceEvenly,
+                  children: [
+                    _buildStatusColumn(Icons.battery_std, 'Battery', '85%', useExpanded: false),
+                    _buildStatusColumn(Icons.settings_input_antenna, 'Distance', '15 cm', useExpanded: false),
+                    _buildStatusColumn(Icons.wifi, 'Wifi', 'Robot_AP', useExpanded: false),
+                    _buildStatusColumn(Icons.volume_up, 'Speaker Volume', '80%', useExpanded: false),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStatusColumn(Icons.battery_std, 'Battery', '85%'),
+                    Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
+                    _buildStatusColumn(Icons.settings_input_antenna, 'Distance', '15 cm'),
+                    Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
+                    _buildStatusColumn(Icons.wifi, 'Wifi', 'Robot_AP'),
+                    Container(width: 1, height: 36, color: const Color(0xFF3B3C42)),
+                    _buildStatusColumn(Icons.volume_up, 'Speaker Volume', '80%'),
+                  ],
+                ),
           const Divider(color: Color(0xFF3B3C42), height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.speed, color: Colors.white54, size: 20),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'Motor Speed',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
+          isLandscape
+              ? Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.spaceEvenly,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.speed, color: Colors.white54, size: 20),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Motor Speed',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF38393F),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            '100%',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF38393F),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      '100%',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                    TextButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.lightbulb_outline, color: Colors.white70, size: 20),
+                      label: const Text(
+                        'LED Lights',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFF38393F),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              Container(width: 1, height: 20, color: const Color(0xFF3B3C42)),
-              TextButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.lightbulb_outline, color: Colors.white70, size: 20),
-                label: const Text(
-                  'LED Lights',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.speed, color: Colors.white54, size: 20),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Motor Speed',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF38393F),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            '100%',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(width: 1, height: 20, color: const Color(0xFF3B3C42)),
+                    TextButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.lightbulb_outline, color: Colors.white70, size: 20),
+                      label: const Text(
+                        'LED Lights',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFF38393F),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFF38393F),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatusColumn(IconData icon, String label, String value) {
-    return Expanded(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white54, size: 16),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white54,
-                    fontSize: 10,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+  Widget _buildStatusColumn(IconData icon, String label, String value, {bool useExpanded = true}) {
+    final column = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white54, size: 16),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 10,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
             ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
+        ),
+      ],
     );
+
+    if (useExpanded) {
+      return Expanded(child: column);
+    }
+    return SizedBox(width: 80, child: column);
   }
 
   Widget _buildAxisControlCard({bool isLandscape = false}) {
