@@ -48,17 +48,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildActivePanel() {
-    switch (_activeTab) {
-      case 'Robot Info':
-        return Column(
-          children: [
-            _buildStatusCard(),
-            const SizedBox(height: 12),
-            _buildAxisControlCard(),
-          ],
-        );
-      case 'Auto Mode':
-        return CarCompanionCard(serviceManager: widget.serviceManager);
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        final isLandscape = orientation == Orientation.landscape;
+        switch (_activeTab) {
+          case 'Robot Info':
+            if (isLandscape) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: _buildStatusCard(),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 5,
+                    child: _buildAxisControlCard(isLandscape: true),
+                  ),
+                ],
+              );
+            } else {
+              return Column(
+                children: [
+                  _buildStatusCard(),
+                  const SizedBox(height: 12),
+                  _buildAxisControlCard(isLandscape: false),
+                ],
+              );
+            }
+          case 'Auto Mode':
+            return CarCompanionCard(serviceManager: widget.serviceManager);
       case 'Sensors':
         return Container(
           padding: const EdgeInsets.all(24),
@@ -98,6 +118,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       default:
         return const SizedBox.shrink();
     }
+      },
+    );
   }
 
   Widget _buildTopBar() {
@@ -285,9 +307,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildAxisControlCard() {
+  Widget _buildAxisControlCard({bool isLandscape = false}) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+      padding: EdgeInsets.symmetric(
+        vertical: isLandscape ? 12.0 : 16.0,
+        horizontal: 12.0,
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFF2B2D31),
         borderRadius: BorderRadius.circular(12),
@@ -296,31 +321,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
           width: 1,
         ),
       ),
-      child: Column(
-        children: [
-          const Text(
-            'Movement',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
+      child: isLandscape
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  children: [
+                    const Text(
+                      'Movement',
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const SizedBox(
+                      width: 200,
+                      height: 200,
+                      child: ControlWheel(
+                        onHome: _handleHome,
+                        onMove: _handleMoveAxis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: VolumeControl(
+                    onVolumeChange: _handleVolumeChange,
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              children: [
+                const Text(
+                  'Movement',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const SizedBox(
+                  width: 250,
+                  height: 250,
+                  child: ControlWheel(
+                    onHome: _handleHome,
+                    onMove: _handleMoveAxis,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                VolumeControl(
+                  onVolumeChange: _handleVolumeChange,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
-          const SizedBox(
-            width: 250,
-            height: 250,
-            child: ControlWheel(
-              onHome: _handleHome,
-              onMove: _handleMoveAxis,
-            ),
-          ),
-          const SizedBox(height: 16),
-          VolumeControl(
-            onVolumeChange: _handleVolumeChange,
-          ),
-        ],
-      ),
     );
   }
 

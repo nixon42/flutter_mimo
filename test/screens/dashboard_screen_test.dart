@@ -82,4 +82,26 @@ void main() {
     expect(find.byType(ControlWheel), findsOneWidget);
     expect(find.byType(CarCompanionCard), findsNothing);
   });
+
+  testWidgets('DashboardScreen renders Row layout in landscape mode', (WidgetTester tester) async {
+    // Set a landscape size
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: DashboardScreen(serviceManager: _MockServiceManager()),
+      ),
+    );
+    await tester.pump();
+
+    // Verify ControlWheel and Status elements are both rendered in landscape layout
+    expect(find.byType(ControlWheel), findsOneWidget);
+    expect(find.byType(VolumeControl), findsOneWidget);
+    expect(find.text('Battery'), findsOneWidget);
+  });
 }
