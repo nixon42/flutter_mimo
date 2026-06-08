@@ -5,13 +5,20 @@ import '../widgets/volume_control.dart';
 import '../widgets/car_companion_card.dart';
 import '../services/foreground_service_manager.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final ForegroundServiceManager serviceManager;
 
   DashboardScreen({
     super.key,
     ForegroundServiceManager? serviceManager,
   }) : serviceManager = serviceManager ?? FlutterForegroundServiceManager();
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  String _activeTab = 'Robot Info';
 
   @override
   Widget build(BuildContext context) {
@@ -30,25 +37,7 @@ class DashboardScreen extends StatelessWidget {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      // Card 1: Robot Status & Indicators
-                      _buildStatusCard(),
-                      const SizedBox(height: 12),
-
-                      // Car Companion Configuration Card
-                      CarCompanionCard(serviceManager: serviceManager),
-                      const SizedBox(height: 12),
-                      
-                      // Card 2: X/Y Axis (Movement) and Camera Tilt controls
-                      _buildAxisControlCard(),
-                      const SizedBox(height: 12),
-                      
-                      // Card 3: Speaker & Audio controls (Hidden for now)
-                      // _buildSpeakerControlCard(),
-                      // const SizedBox(height: 12),
-                    ],
-                  ),
+                  child: _buildActivePanel(),
                 ),
               ),
             ],
@@ -56,6 +45,59 @@ class DashboardScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildActivePanel() {
+    switch (_activeTab) {
+      case 'Robot Info':
+        return Column(
+          children: [
+            _buildStatusCard(),
+            const SizedBox(height: 12),
+            _buildAxisControlCard(),
+          ],
+        );
+      case 'Auto Mode':
+        return CarCompanionCard(serviceManager: widget.serviceManager);
+      case 'Sensors':
+        return Container(
+          padding: const EdgeInsets.all(24),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFF2B2D31),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF3B3C42),
+              width: 1,
+            ),
+          ),
+          child: const Text(
+            'Sensors Panel\nComing Soon',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white60, fontSize: 16),
+          ),
+        );
+      case 'Calibration':
+        return Container(
+          padding: const EdgeInsets.all(24),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFF2B2D31),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF3B3C42),
+              width: 1,
+            ),
+          ),
+          child: const Text(
+            'Calibration Panel\nComing Soon',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white60, fontSize: 16),
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   Widget _buildTopBar() {
@@ -93,22 +135,30 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildTopTab(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        color: const Color(0xFF38393F),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF4B4C52),
-          width: 1,
+    final isActive = _activeTab == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _activeTab = label;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFFE38B57) : const Color(0xFF38393F),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isActive ? const Color(0xFFF1AC80) : const Color(0xFF4B4C52),
+            width: 1,
+          ),
         ),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
