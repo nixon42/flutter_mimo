@@ -122,8 +122,8 @@ class _ControlWheelState extends State<ControlWheel> {
                     color: const Color(0xFF28282D),
                     child: InkWell(
                       onTap: widget.onHome,
-                      splashColor: Colors.redAccent.withOpacity(0.3),
-                      highlightColor: Colors.redAccent.withOpacity(0.15),
+                      splashColor: Colors.redAccent.withValues(alpha: 0.3),
+                      highlightColor: Colors.redAccent.withValues(alpha: 0.15),
                       child: SizedBox(
                         width: rHome * 2,
                         height: rHome * 2,

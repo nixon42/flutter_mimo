@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import '../widgets/control_wheel.dart';
 import '../widgets/volume_control.dart';
-import '../widgets/speaker_control.dart';
+// import '../widgets/speaker_control.dart';
+import '../widgets/car_companion_card.dart';
+import '../services/foreground_service_manager.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  final ForegroundServiceManager serviceManager;
+
+  DashboardScreen({
+    super.key,
+    ForegroundServiceManager? serviceManager,
+  }) : serviceManager = serviceManager ?? FlutterForegroundServiceManager();
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +34,10 @@ class DashboardScreen extends StatelessWidget {
                     children: [
                       // Card 1: Robot Status & Indicators
                       _buildStatusCard(),
+                      const SizedBox(height: 12),
+
+                      // Car Companion Configuration Card
+                      CarCompanionCard(serviceManager: serviceManager),
                       const SizedBox(height: 12),
                       
                       // Card 2: X/Y Axis (Movement) and Camera Tilt controls
@@ -263,24 +274,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSpeakerControlCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2B2D31),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF3B3C42),
-          width: 1,
-        ),
-      ),
-      child: SpeakerControl(
-        onSpeakerAction: _handleSpeakerAction,
-      ),
-    );
-  }
-
   // Callback handlers
   static void _handleHome() {
     debugPrint("Dock/Stop button pressed");
@@ -294,7 +287,7 @@ class DashboardScreen extends StatelessWidget {
     debugPrint("Volume adjusted by $step");
   }
 
-  static void _handleSpeakerAction(String mode, int direction) {
-    debugPrint("Speaker action in mode: $mode, direction: $direction");
-  }
+  // static void _handleSpeakerAction(String mode, int direction) {
+  //   debugPrint("Speaker action in mode: $mode, direction: $direction");
+  // }
 }
