@@ -1,5 +1,3 @@
-
-
 **FUNCTIONAL SPECIFICATION DOCUMENT**
 
 AI Robot Assistant — Car Companion Feature
@@ -108,9 +106,9 @@ Acknowledgement berjalan balik: **Headunit → MCP Server → xiaozhi.ai → Rob
 | 1 | User → Robot | User mengucapkan perintah ke robot. Contoh: 'buka Google Maps, navigasi ke SPBU terdekat'. |
 | 2 | Robot → xiaozhi.ai | Robot streaming audio ke xiaozhi.ai via WiFi untuk diproses (STT \+ NLU \+ AI inference). |
 | 3 | xiaozhi.ai → MCP Server | AI mengidentifikasi intent dan memanggil tool yang sesuai di MCP Server Android (di-host di cloud xiaozhi.me). |
-| 4 | MCP Server → Headunit | MCP Server push command payload JSON ke Flutter app yang berjalan di headunit via SSE. Koneksi internet ke headunit berasal dari HP (USB Tethering/Hotspot). |
+| 4 | MCP Server → Headunit | MCP Server publish command payload JSON ke Flutter app yang berjalan di headunit via MQTT. Koneksi internet ke headunit berasal dari HP (USB Tethering/Hotspot). |
 | 5 | Headunit: Eksekusi | Flutter app menerima dan mem-parsing command, lalu mengeksekusi Android Intent secara lokal di headunit (buka Google Maps, Spotify, dll.). |
-| 6 | Headunit → MCP Server | Flutter app mengirim HTTP POST acknowledgement (status success/error \+ pesan verbal) ke MCP Server via internet HP. |
+| 6 | Headunit → MCP Server | Flutter app mengirim HTTP POST / MQTT publish acknowledgement (status success/error \+ pesan verbal) ke MCP Server via internet HP. |
 | 7 | MCP → xiaozhi.ai → Robot | xiaozhi.ai menerima status, men-generate respons TTS, dan robot memutarnya via speaker. Contoh: 'Google Maps sudah dibuka, navigasi dimulai.' |
 
 ## **3.4 Tech Stack**
@@ -120,10 +118,10 @@ Acknowledgement berjalan balik: **Headunit → MCP Server → xiaozhi.ai → Rob
 | **Robot Hardware** | ESP32-S3, Mic, Speaker, OLED, Baterai | Existing — tidak ada perubahan |
 | **Robot Firmware** | xiaozhi.ai SDK \+ Arduino C++ | Existing — kemungkinan perlu modifikasi program (firmware) yg ada di ESP32 sekarang |
 | **AI Platform** | xiaozhi.ai (cloud) | STT, NLU, TTS, MCP orchestration |
-| **MCP Server (NEW)** | Node.js / Python \+ MCP SDK | Deploy di cloud xiaozhi.me. Menerima tool call AI, push command ke headunit via SSE. |
+| **MCP Server (NEW)** | Python (uv) \+ MCP SDK (stdio) | Deploy di cloud xiaozhi.me. Menerima tool call AI, publish command ke headunit via MQTT. |
 | **Internet Bridge** | Android Phone — USB Tethering / WiFi Hotspot | Bukan app baru. Fitur native Android di HP user. Zero development effort. |
 | **Android App (NEW)** | Flutter (Dart) \+ Android Intent API | Berjalan di headunit. Koneksi internet via HP. Eksekusi intent lokal. |
-| **Transport Protocol** | SSE (push command) \+ HTTP POST (acknowledgement) | Semua traffic lewat internet HP. HTTPS wajib. |
+| **Transport Protocol** | MQTT (push command) \+ HTTP POST (acknowledgement) | Semua traffic lewat internet HP. HTTPS / MQTT+SSL wajib. |
 
 # **4\. Internet Bridge — HP ke Headunit**
 
@@ -177,37 +175,37 @@ Flutter app harus mendeteksi ketersediaan internet saat startup dan secara perio
 
 MCP Server baru didaftarkan ke platform xiaozhi.me mengikuti pola konfigurasi MCP yang sudah ada. Langkah yang diperlukan:
 
-9. Buat MCP Server dengan endpoint publik (HTTPS) yang dapat diakses dari cloud xiaozhi.me.
+9. Buat MCP Server dengan stdio transport yang di-bridge dari cloud xiaozhi.me.
 
 10. Definisikan daftar tools beserta JSON schema parameter (lihat Seksi 5.3).
 
 11. Daftarkan server di konfigurasi xiaozhi.ai agar AI dapat memanggil tools tersebut.
 
-12. Implementasikan mekanisme SSE connection management per device ID.
+12. Implementasikan mekanisme MQTT topic per device ID.
 
 13. Implementasikan command queue (TTL 60 detik) untuk headunit yang sedang offline.
 
 ## **5.2 Mekanisme Push Command**
 
-### **Primary: Server-Sent Events (SSE)**
+### **Primary: MQTT Protocol**
 
-* Flutter app membuka koneksi SSE persistente ke MCP Server saat startup.
+* Flutter app membuka koneksi MQTT ke broker dengan subscribe ke topic command saat startup.
 
-* MCP Server menyimpan mapping: device\_id → SSE connection aktif.
+* MCP Server mem-publish command ke topic MQTT `device/{device_id}/command`.
 
-* Saat ada tool call dari xiaozhi.ai, MCP Server push event ke SSE connection headunit yang sesuai.
+* Saat ada tool call dari xiaozhi.ai, MCP Server publish payload ke MQTT topic headunit yang sesuai.
 
-* Flutter app harus keep-alive koneksi SSE dengan heartbeat setiap 30 detik.
+* Flutter app dan MQTT client otomatis menangani keep-alive heartbeat.
 
 * Target latency: \< 500ms dari tool call hingga command diterima headunit.
 
 ### **Command Queue (Offline Buffer)**
 
-* Jika tidak ada SSE connection aktif untuk device\_id yang ditarget, MCP Server menyimpan command di queue (Redis atau in-memory).
+* Jika headunit sedang offline, message MQTT dapat disimpan di queue (jika QoS > 0 dan clean_session=false).
 
 * TTL queue: 60 detik. Jika headunit tidak connect dalam 60 detik, command expired.
 
-* Saat headunit connect kembali, MCP Server immediately push queued commands.
+* Saat headunit connect kembali, MQTT broker immediately push queued commands.
 
 ### **Acknowledgement: HTTP POST**
 
@@ -232,7 +230,7 @@ MCP Server baru didaftarkan ke platform xiaozhi.me mengikuti pola konfigurasi MC
 
 ## **6.1 Deskripsi Umum**
 
-Flutter app berjalan sebagai foreground service di Android headunit. Tidak ada UI utama yang dioperasikan user setelah setup awal. App otomatis start saat headunit menyala (boot) dan menjaga koneksi SSE ke MCP Server — selama internet dari HP tersedia.
+Flutter app berjalan sebagai foreground service di Android headunit. Tidak ada UI utama yang dioperasikan user setelah setup awal. App otomatis start saat headunit menyala (boot) dan menjaga koneksi MQTT ke broker — selama internet dari HP tersedia.
 
 ## **6.2 Screens & UI**
 
@@ -247,17 +245,17 @@ Flutter app berjalan sebagai foreground service di Android headunit. Tidak ada U
 
 | FR-ID | Requirement | Detail |
 | ----- | ----- | ----- |
-| FR-01 | Auto-start on Boot | Foreground service otomatis start saat Android boot (RECEIVE\_BOOT\_COMPLETED). Service menjaga SSE connection selama internet tersedia. |
-| FR-02 | Internet Availability Monitor | Monitor status internet via connectivity\_plus. Saat internet tersedia: init SSE connection. Saat internet putus: tampilkan alert, stop SSE gracefully, tunggu reconnect. |
-| FR-03 | SSE Connection Management | Buka koneksi SSE ke MCP Server dengan device\_token. Heartbeat setiap 30 detik. Reconnect otomatis dengan exponential backoff (1s, 2s, 4s, 8s, max 60s) jika koneksi putus. |
-| FR-04 | Command Parsing & Validation | Parsing JSON payload dari SSE event. Validasi schema: request\_id, command\_type, parameters wajib ada. Jika invalid: kirim ack error INVALID\_PAYLOAD. |
+| FR-01 | Auto-start on Boot | Foreground service otomatis start saat Android boot (RECEIVE\_BOOT\_COMPLETED). Service menjaga koneksi MQTT selama internet tersedia. |
+| FR-02 | Internet Availability Monitor | Monitor status internet via connectivity\_plus. Saat internet tersedia: connect MQTT. Saat internet putus: tampilkan alert, disconnect MQTT gracefully, tunggu reconnect. |
+| FR-03 | MQTT Connection Management | Buka koneksi MQTT ke broker. Heartbeat dan reconnect otomatis dikelola oleh MQTT client dengan exponential backoff (1s, 2s, 4s, 8s, max 60s) jika koneksi putus. |
+| FR-04 | Command Parsing & Validation | Parsing JSON payload dari MQTT message. Validasi schema: request\_id, command\_type, parameters wajib ada. Jika invalid: kirim ack error INVALID\_PAYLOAD. |
 | FR-05 | Intent: Navigation | Eksekusi Google Maps via URI google.navigation:q={destination}\&mode=d. Untuk Waze: waze://?q={destination}\&navigate=yes. Cek app ter-install sebelum launch. Jika app target belum ter-install, munculkan pesan. |
 | FR-06 | Intent: Music | Spotify: spotify:search:{query} atau spotify:user:spotify:playlist:37i9dQZF. YouTube Music: intent ACTION\_VIEW dengan URI. Fallback ke open app tanpa deep link jika URI gagal. |
 | FR-07 | Intent: Generic App | Gunakan PackageManager.getLaunchIntentForPackage(packageName). Jika return null → app tidak terinstall → kirim ack error APP\_NOT\_INSTALLED. |
 | FR-08 | App Not Installed Handling | TIDAK membuka Play Store. Kirim ack error dengan message: 'Aplikasi {nama app} belum terinstall di headunit.' Robot menyampaikan ini secara verbal ke user. |
 | FR-09 | Acknowledgement | HTTP POST ke /api/v1/ack dalam 10 detik setelah setiap eksekusi. Payload: request\_id, status, message, timestamp. Retry POST 3x jika gagal. |
 | FR-10 | Phone Call | android.intent.action.CALL dengan URI tel:{number}. Cek permission CALL\_PHONE runtime. Jika belum granted: minta permission, jika ditolak kirim ack error PERMISSION\_DENIED. |
-| FR-11 | Device Registration | Pertama kali setup: POST /api/v1/register dengan device\_id, device\_name, android\_version, app\_version. Server simpan untuk routing SSE. |
+| FR-11 | Device Registration | Pertama kali setup: POST /api/v1/register dengan device\_id, device\_name, android\_version, app\_version. Server simpan info registrasi. |
 | FR-12 | No Internet Notification | Jika headunit tidak punya internet: tampilkan persistent notification dengan instruksi USB Tethering. Notifikasi hilang otomatis saat internet tersedia. |
 
 ## **6.4 Flutter Dependencies**
@@ -265,7 +263,7 @@ Flutter app berjalan sebagai foreground service di Android headunit. Tidak ada U
 | Package | Version (min) | Kegunaan |
 | ----- | ----- | ----- |
 | flutter\_foreground\_task | ^8.1.0 | Foreground service agar app tetap hidup di background dan auto-start on boot |
-| flutter\_client\_sse | ^1.0.1 | SSE client untuk menerima push command dari MCP Server |
+| mqtt\_client | ^7.2.1 | MQTT client untuk menerima command dari MCP Server |
 | http | ^1.2.0 | HTTP POST untuk device registration dan acknowledgement |
 | android\_intent\_plus | ^5.1.0 | Menjalankan Android Intent dari Flutter (launch apps, navigation, call) |
 | connectivity\_plus | ^6.0.3 | Monitor status internet (tersedia / tidak tersedia) secara real-time |
@@ -281,12 +279,12 @@ Flutter app berjalan sebagai foreground service di Android headunit. Tidak ada U
 | ----- | ----- |
 | Base URL | https://mcp-android.xiaozhi.me/api/v1  (contoh — disesuaikan saat deploy) |
 | Auth Header | Authorization: Bearer {device\_token} |
-| SSE Endpoint | GET /stream/{device\_id}  — koneksi SSE persistente |
+| MQTT Broker | wss://broker.emqx.io:8084/mqtt  (contoh — disesuaikan saat deploy) |
 | Ack Endpoint | POST /ack |
 | Register Endpoint | POST /register |
 | Status Endpoint | GET /status/{device\_id} |
 
-## **7.2 Command Payload (MCP Server → Flutter App via SSE)**
+## **7.2 Command Payload (MCP Server → Flutter App via MQTT)**
 
 | {   "request\_id":    "req\_a1b2c3d4",   "command\_type":  "open\_navigation",   "parameters": {     "destination": "SPBU Shell Kemang Jakarta",     "app":         "google\_maps"   },   "ttl":           60,   "timestamp":     "2025-06-01T10:30:00Z" } |
 | :---- |
@@ -305,7 +303,7 @@ Flutter app berjalan sebagai foreground service di Android headunit. Tidak ada U
 | PERMISSION\_DENIED | Permission Android ditolak. Robot: 'Perintah tidak bisa dijalankan karena izin akses belum diberikan di headunit.' |
 | INVALID\_PAYLOAD | Schema command tidak valid. Robot: 'Terjadi kesalahan teknis, coba ulangi perintah kamu.' |
 | HEADUNIT\_TIMEOUT | Tidak ada ack dalam 10 detik. Robot: 'Headunit tidak merespons. Pastikan app Car Companion berjalan.' |
-| HEADUNIT\_DISCONNECTED | Tidak ada SSE connection aktif dan command expired dari queue. Robot: 'Headunit sedang tidak terhubung.' |
+| HEADUNIT\_DISCONNECTED | Headunit tidak terkoneksi ke MQTT dan command expired dari queue. Robot: 'Headunit sedang tidak terhubung.' |
 | INTENT\_FAILED | Intent diluncurkan tapi app throw exception. Robot: 'Terjadi kesalahan saat membuka aplikasi, coba lagi.' |
 | COMMAND\_EXPIRED | Command TTL 60 detik habis sebelum headunit connect. Robot: 'Perintah kadaluarsa karena headunit tidak terhubung.' |
 
@@ -316,11 +314,11 @@ Flutter app berjalan sebagai foreground service di Android headunit. Tidak ada U
 | NFR-01 | Latency End-to-End | \< 3 detik | Dari user selesai bicara hingga robot respons verbal (success case, internet stabil). |
 | NFR-02 | Latency Eksekusi Intent | \< 1 detik | Dari command diterima Flutter app hingga Android Intent diluncurkan. |
 | NFR-03 | MCP Server Availability | 99% uptime | Monitoring wajib. Health check endpoint disediakan. |
-| NFR-04 | Security | HTTPS \+ Token auth | Semua komunikasi wajib HTTPS. Setiap device punya device\_token unik yang dirotasi berkala. |
-| NFR-05 | Reconnection | Otomatis | SSE reconnect otomatis dengan exponential backoff. Tidak butuh interaksi user. |
+| NFR-04 | Security | HTTPS \+ Token auth | Semua komunikasi HTTP wajib HTTPS. Koneksi MQTT wajib MQTTS/WSS. |
+| NFR-05 | Reconnection | Otomatis | MQTT reconnect otomatis dengan exponential backoff. Tidak butuh interaksi user. |
 | NFR-06 | Android Compatibility | Android 9+ (API 28+) | Minimum OS untuk support semua intent dan foreground service behavior. |
-| NFR-07 | Battery / Resource | \< 3% / jam | Foreground service harus efisien. Heartbeat SSE 30 detik (bukan polling). Tidak ada wake lock agresif. |
-| NFR-08 | Offline Resilience | Command queue 60s | Command tidak langsung hilang saat headunit offline. Queue di MCP Server selama 60 detik. |
+| NFR-07 | Battery / Resource | \< 3% / jam | Foreground service harus efisien. Heartbeat MQTT 30 detik (bukan polling). Tidak ada wake lock agresif. |
+| NFR-08 | Offline Resilience | Command queue 60s | Command tidak langsung hilang saat headunit offline. Queue di MQTT Broker selama 60 detik. |
 
 # **9\. Testing Strategy**
 
@@ -356,7 +354,7 @@ Testing dilakukan dalam dua fase:
 | TC-08 | Phone Call | User: 'Telepon 0812345678'. | Dialer terbuka dengan nomor ready. Panggilan dimulai. | 1 & 2 | \[ \] Pass \[ \] Fail |
 | TC-09 | WiFi Hotspot Fallback | Gunakan WiFi Hotspot dari HP (bukan USB Tethering). Beri perintah navigasi. | Perintah berhasil dieksekusi sama seperti USB Tethering. | 1 & 2 | \[ \] Pass \[ \] Fail |
 | TC-10 | Auto-start | Restart headunit/phone. Tunggu 30 detik. Beri perintah ke robot. | App berjalan di background otomatis. Perintah berhasil tanpa membuka app manual. | 1 & 2 | \[ \] Pass \[ \] Fail |
-| TC-11 | SSE Reconnect | Matikan WiFi headunit 15 detik (simulasi signal loss), nyalakan lagi. | App reconnect otomatis. Tidak butuh restart atau user action. | 1 & 2 | \[ \] Pass \[ \] Fail |
+| TC-11 | MQTT Reconnect | Matikan WiFi headunit 15 detik (simulasi signal loss), nyalakan lagi. | App reconnect otomatis. Tidak butuh restart atau user action. | 1 & 2 | \[ \] Pass \[ \] Fail |
 | TC-12 | Ack Verbal | Semua TC di atas: verifikasi robot selalu memberikan respons verbal. | Setiap command (sukses/gagal) selalu ada konfirmasi verbal dari robot. | 1 & 2 | \[ \] Pass \[ \] Fail |
 
 # **10\. Assumptions, Dependencies & Risks**
@@ -387,17 +385,17 @@ Testing dilakukan dalam dua fase:
 | ----- | ----- | ----- |
 | Headunit tidak support USB Tethering (port hanya charging). | Low | Gunakan WiFi Hotspot sebagai fallback. Dokumentasikan di user guide. |
 | Headunit menggunakan Android custom yang memblokir Intent atau Foreground Service. | Medium | Testing Fase 1 di Android phone terlebih dahulu untuk validasi logic. Identifikasi batasan headunit sebelum Fase 2\. |
-| SSE connection tidak stabil karena jaringan mobile (4G/5G HP berfluktuasi di dalam mobil). | Medium | Command queue 60 detik di MCP Server. Reconnect otomatis dengan backoff. Testing di lingkungan bergerak. |
+| MQTT connection tidak stabil karena jaringan mobile (4G/5G HP berfluktuasi di dalam mobil). | Medium | Command queue 60 detik di broker. Reconnect otomatis dengan backoff. Testing di lingkungan bergerak. |
 | Spotify / navigasi app URI scheme berubah di versi terbaru. | Low | Implementasikan fallback: open app tanpa deep link jika URI scheme gagal. Monitor URI scheme changes berkala. |
 | User lupa mengaktifkan USB Tethering di HP. | High | Notifikasi proaktif di headunit saat internet tidak tersedia dengan instruksi jelas. Robot juga menyampaikan panduan secara verbal. |
-| Latency end-to-end \> 3 detik karena chain panjang (robot → cloud → MCP → headunit). | Medium | Profiling per layer. Optimasi SSE keep-alive, minimize TTS latency di xiaozhi.ai, dan SSE push langsung tanpa queue jika headunit online. |
+| Latency end-to-end \> 3 detik karena chain panjang (robot → cloud → MCP → headunit). | Medium | Profiling per layer. Optimasi MQTT keep-alive, minimize TTS latency di xiaozhi.ai, dan MQTT publish langsung tanpa queue jika headunit online. |
 
 # **11\. Deliverables & Acceptance Criteria**
 
 | \# | Deliverable | Owner | Acceptance Criteria |
 | ----- | ----- | ----- | ----- |
 | D-01 | FSD v2.0 — Approved by PO | BA \+ PO | PO sign-off. Prerequisite semua deliverable lain. |
-| D-02 | MCP Server ter-deploy di xiaozhi.me dengan semua 6 tools aktif | Backend Dev | Tool call dari xiaozhi.ai berhasil push command ke Flutter app via SSE. |
+| D-02 | MCP Server ter-deploy di xiaozhi.me dengan semua 6 tools aktif | Backend Dev | Tool call dari xiaozhi.ai berhasil publish command ke Flutter app via MQTT. |
 | D-03 | Flutter App APK — Debug build (Android phone) | Mobile Dev | TC-01 hingga TC-12 semua passed di Android phone. |
 | D-04 | Integration Test Report — Fase 1 | QA | Semua test case documented dengan hasil pass/fail dan screenshot/log. |
 | D-05 | Flutter App APK — Release build (headunit) | Mobile Dev | Debug screen off. Auto-start aktif. Signed APK. |
@@ -409,5 +407,5 @@ Testing dilakukan dalam dua fase:
 | Version | Date | Author | Changes |
 | ----- | ----- | ----- | ----- |
 | 1.0.0 | June 2025 | Business Analyst | Initial release — arsitektur Cloud Relay, headunit dengan internet mandiri. |
-| 2.0.0 | June 2025 | Business Analyst | Arsitektur direvisi: headunit tanpa internet mandiri. HP sebagai internet bridge via USB Tethering / WiFi Hotspot. Target: headunit menengah ke bawah, user awam. Tambah: FR-12 (no-internet notification), TC-05 s/d TC-07 (internet & queue scenarios), D-07 (user setup guide), Section 4 (internet bridge), error codes NO\_INTERNET & COMMAND\_EXPIRED. |
+| 2.0.0 | June 2025 | Business Analyst | Arsitektur direvisi: komunikasi diubah dari SSE ke MQTT, Node.js diganti Python. Integrasi stdio MCP Bridge untuk headunit command dispatcher. |
 

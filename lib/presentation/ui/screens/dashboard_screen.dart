@@ -1,24 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../state/companion_state.dart';
 import '../widgets/control_wheel.dart';
 import '../widgets/volume_control.dart';
-// import '../widgets/speaker_control.dart';
 import '../widgets/car_companion_card.dart';
-import '../services/foreground_service_manager.dart';
 
-class DashboardScreen extends StatefulWidget {
-  final ForegroundServiceManager serviceManager;
-
-  DashboardScreen({
-    super.key,
-    ForegroundServiceManager? serviceManager,
-  }) : serviceManager = serviceManager ?? FlutterForegroundServiceManager();
-
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  String _activeTab = 'Robot Info';
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,14 +18,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             children: [
               // Top Navigation Bar
-              _buildTopBar(),
+              _buildTopBar(context),
               const SizedBox(height: 12),
               
               // Main Control Panels (Scrollable for Portrait Mobile)
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  child: _buildActivePanel(),
+                  child: _buildActivePanel(context),
                 ),
               ),
             ],
@@ -47,11 +35,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildActivePanel() {
+  Widget _buildActivePanel(BuildContext context) {
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
+    final activeTab = context.select<CompanionState, String>((state) => state.activeTab);
 
-    switch (_activeTab) {
+    switch (activeTab) {
       case 'Robot Info':
         if (isLandscape) {
           return Row(
@@ -78,49 +67,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         }
       case 'Auto Mode':
-        return CarCompanionCard(serviceManager: widget.serviceManager);
+        return const CarCompanionCard();
       case 'Sensors':
-        return Container(
-          padding: const EdgeInsets.all(24),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2B2D31),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF3B3C42),
-              width: 1,
-            ),
-          ),
-          child: const Text(
-            'Sensors Panel\nComing Soon',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white60, fontSize: 16),
-          ),
-        );
+        return _buildPlaceholderPanel('Sensors Panel\nComing Soon');
       case 'Calibration':
-        return Container(
-          padding: const EdgeInsets.all(24),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2B2D31),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF3B3C42),
-              width: 1,
-            ),
-          ),
-          child: const Text(
-            'Calibration Panel\nComing Soon',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white60, fontSize: 16),
-          ),
-        );
+        return _buildPlaceholderPanel('Calibration Panel\nComing Soon');
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildTopBar() {
+  Widget _buildPlaceholderPanel(String text) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2B2D31),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF3B3C42),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.white60, fontSize: 16),
+      ),
+    );
+  }
+
+  Widget _buildTopBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -139,13 +116,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _buildTopTab('Robot Info'),
+                _buildTopTab(context, 'Robot Info'),
                 const SizedBox(width: 8),
-                _buildTopTab('Auto Mode'),
+                _buildTopTab(context, 'Auto Mode'),
                 const SizedBox(width: 8),
-                _buildTopTab('Sensors'),
+                _buildTopTab(context, 'Sensors'),
                 const SizedBox(width: 8),
-                _buildTopTab('Calibration'),
+                _buildTopTab(context, 'Calibration'),
               ],
             ),
           ),
@@ -154,13 +131,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTopTab(String label) {
-    final isActive = _activeTab == label;
+  Widget _buildTopTab(BuildContext context, String label) {
+    final activeTab = context.select<CompanionState, String>((state) => state.activeTab);
+    final isActive = activeTab == label;
+
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _activeTab = label;
-        });
+        context.read<CompanionState>().setActiveTab(label);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -420,16 +397,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(width: 12),
-                Expanded(
+                const Expanded(
                   child: VolumeControl(
                     onVolumeChange: _handleVolumeChange,
                   ),
                 ),
               ],
             )
-          : Column(
+          : const Column(
               children: [
-                const Text(
+                Text(
                   'Movement',
                   style: TextStyle(
                     color: Colors.white54,
@@ -437,8 +414,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const SizedBox(
+                SizedBox(height: 16),
+                SizedBox(
                   width: 250,
                   height: 250,
                   child: ControlWheel(
@@ -446,7 +423,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onMove: _handleMoveAxis,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 VolumeControl(
                   onVolumeChange: _handleVolumeChange,
                 ),
@@ -467,8 +444,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static void _handleVolumeChange(int step) {
     debugPrint("Volume adjusted by $step");
   }
-
-  // static void _handleSpeakerAction(String mode, int direction) {
-  //   debugPrint("Speaker action in mode: $mode, direction: $direction");
-  // }
 }

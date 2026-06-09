@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import '../services/foreground_service_manager.dart';
+import 'package:provider/provider.dart';
+import '../../state/companion_state.dart';
 
 class CarCompanionCard extends StatefulWidget {
-  final ForegroundServiceManager serviceManager;
-
-  const CarCompanionCard({
-    super.key,
-    required this.serviceManager,
-  });
+  const CarCompanionCard({super.key});
 
   @override
   State<CarCompanionCard> createState() => _CarCompanionCardState();
@@ -17,14 +13,19 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
   final _deviceIdController = TextEditingController();
   final _serverUrlController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isRunning = false;
-  bool _autoStart = false;
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    // Initialize controllers with current state values
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = context.read<CompanionState>();
+      _deviceIdController.text = state.deviceId;
+      _serverUrlController.text = state.serverUrl.isNotEmpty 
+          ? state.serverUrl 
+          : 'https://mcp-android.xiaozhi.me/api/v1';
+    });
   }
 
   @override
@@ -34,79 +35,40 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
     super.dispose();
   }
 
-  Future<void> _loadSettings() async {
-    setState(() => _isLoading = true);
-    final deviceId = await widget.serviceManager.getDeviceId();
-    final serverUrl = await widget.serviceManager.getServerUrl();
-    final isRunning = await widget.serviceManager.isRunning();
-    final autoStart = await widget.serviceManager.isAutoStartEnabled();
-
-    if (mounted) {
-      if (deviceId != null) _deviceIdController.text = deviceId;
-      // Default to example URL if not set
-      _serverUrlController.text = serverUrl ?? 'https://mcp-android.xiaozhi.me/api/v1';
-      setState(() {
-        _isRunning = isRunning;
-        _autoStart = autoStart;
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _toggleService() async {
+  Future<void> _toggleService(CompanionState state) async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    final success = await state.toggleService(
+      deviceId: _deviceIdController.text.trim(),
+      serverUrl: _serverUrlController.text.trim(),
+    );
 
-    try {
-      if (_isRunning) {
-        final success = await widget.serviceManager.stop();
-        if (success) {
-          if (!mounted) return;
-          setState(() {
-            _isRunning = false;
-            _autoStart = false; // Stopped manually, disable autoStart
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Car Companion service stopped.')),
-          );
-        }
-      } else {
-        final success = await widget.serviceManager.start(
-          deviceId: _deviceIdController.text.trim(),
-          serverUrl: _serverUrlController.text.trim(),
-        );
-        if (success) {
-          if (!mounted) return;
-          setState(() {
-            _isRunning = true;
-            _autoStart = true;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Car Companion service started successfully!')),
-          );
-        } else {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to start Car Companion service.')),
-          );
-        }
-      }
-    } catch (e) {
-      if (!mounted) return;
+    if (!mounted) return;
+
+    if (state.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error: ${state.error}')),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      state.clearError();
+    } else if (success) {
+      final msg = state.isRunning 
+          ? 'Car Companion service started successfully!' 
+          : 'Car Companion service stopped.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update Car Companion service.')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final state = context.watch<CompanionState>();
+
+    if (state.isLoading) {
       return Container(
         height: 150,
         decoration: BoxDecoration(
@@ -152,13 +114,13 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _isRunning ? Colors.green.withValues(alpha: 0.15) : Colors.red.withValues(alpha: 0.15),
+                    color: state.isRunning ? Colors.green.withValues(alpha: 0.15) : Colors.red.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    _isRunning ? 'ACTIVE' : 'INACTIVE',
+                    state.isRunning ? 'ACTIVE' : 'INACTIVE',
                     style: TextStyle(
-                      color: _isRunning ? Colors.green : Colors.red,
+                      color: state.isRunning ? Colors.green : Colors.red,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -171,7 +133,7 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
             // Device ID Field
             TextFormField(
               controller: _deviceIdController,
-              enabled: !_isRunning,
+              enabled: !state.isRunning,
               decoration: const InputDecoration(
                 labelText: 'Robot Device ID',
                 labelStyle: TextStyle(color: Colors.white70, fontSize: 13),
@@ -197,7 +159,7 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
             // Server URL Field
             TextFormField(
               controller: _serverUrlController,
-              enabled: !_isRunning,
+              enabled: !state.isRunning,
               decoration: const InputDecoration(
                 labelText: 'MCP Server URL',
                 labelStyle: TextStyle(color: Colors.white70, fontSize: 13),
@@ -224,7 +186,7 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
             const SizedBox(height: 16),
 
             // Boot auto-start information
-            if (_isRunning && _autoStart)
+            if (state.isRunning && state.autoStart)
               const Padding(
                 padding: EdgeInsets.only(bottom: 16.0),
                 child: Row(
@@ -245,17 +207,17 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _toggleService,
+                onPressed: () => _toggleService(state),
                 icon: Icon(
-                  _isRunning ? Icons.stop : Icons.play_arrow,
+                  state.isRunning ? Icons.stop : Icons.play_arrow,
                   color: Colors.white,
                 ),
                 label: Text(
-                  _isRunning ? 'STOP COMPANION SERVICE' : 'START COMPANION SERVICE',
+                  state.isRunning ? 'STOP COMPANION SERVICE' : 'START COMPANION SERVICE',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isRunning ? Colors.red.shade800 : const Color(0xFFE38B57),
+                  backgroundColor: state.isRunning ? Colors.red.shade800 : const Color(0xFFE38B57),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(

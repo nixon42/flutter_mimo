@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'services/foreground_service_manager.dart';
-import 'screens/dashboard_screen.dart';
+import 'package:provider/provider.dart';
+import 'data/services/foreground_service_manager.dart';
+import 'presentation/state/companion_state.dart';
+import 'presentation/ui/screens/dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,15 +36,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mimo Control Panel',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF1E1F22),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => CompanionState(serviceManager: serviceManager),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Mimo Control Panel',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: const Color(0xFF1E1F22),
+          useMaterial3: true,
+        ),
+        home: const DashboardScreen(),
       ),
-      home: DashboardScreen(serviceManager: serviceManager),
     );
   }
 }
