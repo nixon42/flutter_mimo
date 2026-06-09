@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_mimo/screens/dashboard_screen.dart';
-import 'package:flutter_mimo/widgets/control_wheel.dart';
-import 'package:flutter_mimo/widgets/volume_control.dart';
-import 'package:flutter_mimo/widgets/car_companion_card.dart';
-import 'package:flutter_mimo/services/foreground_service_manager.dart';
+import 'package:flutter_mimo/presentation/ui/screens/dashboard_screen.dart';
+import 'package:flutter_mimo/presentation/ui/widgets/control_wheel.dart';
+import 'package:flutter_mimo/presentation/ui/widgets/volume_control.dart';
+import 'package:flutter_mimo/presentation/ui/widgets/car_companion_card.dart';
+import 'package:flutter_mimo/data/services/foreground_service_manager.dart';
+import 'package:flutter_mimo/presentation/state/companion_state.dart';
+import 'package:provider/provider.dart';
 
 // Minimal mock to avoid native plugin calls in widget tests
 class _MockServiceManager extends ForegroundServiceManager {
@@ -24,8 +26,11 @@ void main() {
 
   testWidgets('DashboardScreen renders robot indicators and control panels', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: DashboardScreen(serviceManager: _MockServiceManager()),
+      ChangeNotifierProvider(
+        create: (_) => CompanionState(serviceManager: _MockServiceManager()),
+        child: const MaterialApp(
+          home: DashboardScreen(),
+        ),
       ),
     );
     await tester.pump();
@@ -55,8 +60,11 @@ void main() {
 
   testWidgets('DashboardScreen tab switching renders correct panels', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: DashboardScreen(serviceManager: _MockServiceManager()),
+      ChangeNotifierProvider(
+        create: (_) => CompanionState(serviceManager: _MockServiceManager()),
+        child: const MaterialApp(
+          home: DashboardScreen(),
+        ),
       ),
     );
     await tester.pump();
@@ -93,8 +101,11 @@ void main() {
     });
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: DashboardScreen(serviceManager: _MockServiceManager()),
+      ChangeNotifierProvider(
+        create: (_) => CompanionState(serviceManager: _MockServiceManager()),
+        child: const MaterialApp(
+          home: DashboardScreen(),
+        ),
       ),
     );
     await tester.pump();

@@ -11,6 +11,7 @@
         "flutter",
         "flutter_foreground_task",
         "permission_handler",
+        "provider",
         "shared_preferences"
       ],
       "devDependencies": [
@@ -438,6 +439,22 @@
       "dependencies": [
         "meta",
         "path"
+      ]
+    },
+    {
+      "name": "provider",
+      "version": "6.1.5+1",
+      "dependencies": [
+        "collection",
+        "flutter",
+        "nested"
+      ]
+    },
+    {
+      "name": "nested",
+      "version": "1.0.0",
+      "dependencies": [
+        "flutter"
       ]
     }
   ],

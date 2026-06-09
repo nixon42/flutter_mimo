@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_mimo/services/foreground_service_manager.dart';
+import 'package:flutter_mimo/data/services/foreground_service_manager.dart';
 
 // A mock implementation of ForegroundServiceManager for testing business logic
 class MockForegroundServiceManager extends ForegroundServiceManager {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_mimo/widgets/speaker_control.dart';
+import 'package:flutter_mimo/presentation/ui/widgets/speaker_control.dart';
 
 void main() {
   testWidgets('SpeakerControl renders tabs, volume buttons, and triggers callbacks', (WidgetTester tester) async {

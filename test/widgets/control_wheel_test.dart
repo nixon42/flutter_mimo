@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_mimo/widgets/control_wheel.dart';
+import 'package:flutter_mimo/presentation/ui/widgets/control_wheel.dart';
 
 void main() {
   testWidgets('ControlWheel renders stop button and responds to taps', (WidgetTester tester) async {
