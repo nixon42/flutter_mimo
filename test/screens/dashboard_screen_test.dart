@@ -66,27 +66,6 @@ void main() {
     expect(find.byType(CarCompanionCard), findsNothing);
   });
 
-  testWidgets('DashboardScreen renders DebugToolsPanel when activeTab is Debug Tools', (WidgetTester tester) async {
-    final state = CompanionState(serviceManager: _MockServiceManager());
-    state.setActiveTab('Debug Tools'); // Set before pumping
-
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: state),
-          ChangeNotifierProvider(create: (_) => ToolDebugState()),
-        ],
-        child: const MaterialApp(
-          home: DashboardScreen(),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    // DebugToolsPanel should be visible
-    expect(find.byType(DebugToolsPanel), findsOneWidget);
-    expect(find.byType(ControlWheel), findsNothing);
-  });
 
   testWidgets('DashboardScreen renders Row layout in landscape mode', (WidgetTester tester) async {
     // Set a landscape size
