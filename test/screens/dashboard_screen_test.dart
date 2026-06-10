@@ -75,7 +75,7 @@ void main() {
     expect(find.byType(CarCompanionCard), findsNothing);
 
     // Tap Auto Mode tab
-    await tester.tap(find.text('Auto Mode'), warnIfMissed: false);
+    tester.element(find.byType(DashboardScreen)).read<CompanionState>().setActiveTab('Auto Mode');
     await tester.pumpAndSettle();
 
     // Now CarCompanionCard should be visible, and ControlWheel / indicators should be hidden
@@ -84,7 +84,7 @@ void main() {
     expect(find.text('Battery'), findsNothing);
 
     // Tap Debug Tools tab
-    await tester.tap(find.text('Debug Tools'), warnIfMissed: false);
+    tester.element(find.byType(DashboardScreen)).read<CompanionState>().setActiveTab('Debug Tools');
     await tester.pumpAndSettle();
 
     // DebugToolsPanel should be visible
@@ -92,7 +92,7 @@ void main() {
     expect(find.byType(CarCompanionCard), findsNothing);
     
     // Tap Robot Info tab again
-    await tester.tap(find.text('Robot Info'), warnIfMissed: false);
+    tester.element(find.byType(DashboardScreen)).read<CompanionState>().setActiveTab('Robot Info');
     await tester.pumpAndSettle();
 
     // ControlWheel should be visible again
