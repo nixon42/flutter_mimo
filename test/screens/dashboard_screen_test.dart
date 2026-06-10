@@ -7,9 +7,20 @@ import 'package:flutter_mimo/presentation/ui/widgets/volume_control.dart';
 import 'package:flutter_mimo/presentation/ui/widgets/car_companion_card.dart';
 import 'package:flutter_mimo/presentation/ui/widgets/debug_tools_panel.dart';
 import 'package:flutter_mimo/data/services/foreground_service_manager.dart';
+import 'package:flutter_mimo/data/services/intent_service.dart';
 import 'package:flutter_mimo/presentation/state/companion_state.dart';
 import 'package:flutter_mimo/presentation/state/tool_debug_state.dart';
 import 'package:provider/provider.dart';
+
+class _MockIntentService implements IntentService {
+  @override
+  Future<bool> executeTool(String toolName, Map<String, dynamic> parameters) async {
+    return true; // Simulate success
+  }
+
+  @override
+  Future<void> showToast(String message) async {}
+}
 
 // Minimal mock to avoid native plugin calls in widget tests
 class _MockServiceManager extends ForegroundServiceManager {
@@ -30,7 +41,7 @@ void main() {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CompanionState(serviceManager: _MockServiceManager())),
-        ChangeNotifierProvider(create: (_) => ToolDebugState()),
+        ChangeNotifierProvider(create: (_) => ToolDebugState(intentService: _MockIntentService())),
       ],
       child: const MaterialApp(
         home: DashboardScreen(),

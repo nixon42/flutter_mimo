@@ -1,8 +1,12 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/tool_log_entry.dart';
+import '../../data/services/intent_service.dart';
 
 class ToolDebugState extends ChangeNotifier {
+  final IntentService intentService;
   final List<ToolLogEntry> _logs = [];
+
+  ToolDebugState({required this.intentService});
 
   List<ToolLogEntry> get logs => List.unmodifiable(_logs);
 
@@ -17,12 +21,16 @@ class ToolDebugState extends ChangeNotifier {
     _logs.insert(0, entry); // Insert at the beginning so newest is on top
     notifyListeners();
 
-    // Simulate intent execution delay
-    await Future.delayed(const Duration(milliseconds: 50));
-    
+    // Show a toast immediately as requested
+    await intentService.showToast('Executing tool: $name');
+
     try {
-      // Mocking execution success
-      _updateLogStatus(entry.id, ToolLogStatus.success, 'Simulated success for $name');
+      final success = await intentService.executeTool(name, params);
+      if (success) {
+        _updateLogStatus(entry.id, ToolLogStatus.success, 'Successfully executed $name');
+      } else {
+        _updateLogStatus(entry.id, ToolLogStatus.error, 'Failed to execute $name');
+      }
     } catch (e) {
       _updateLogStatus(entry.id, ToolLogStatus.error, e.toString());
     }

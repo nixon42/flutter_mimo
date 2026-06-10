@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:provider/provider.dart';
 import 'data/services/foreground_service_manager.dart';
+import 'data/services/intent_service.dart';
 import 'presentation/state/companion_state.dart';
 import 'presentation/state/tool_debug_state.dart';
 import 'presentation/ui/screens/dashboard_screen.dart';
@@ -14,6 +15,8 @@ void main() async {
 
   final manager = FlutterForegroundServiceManager();
   await manager.init();
+  
+  final intentService = AndroidIntentService();
 
   // Auto-start on boot if enabled
   if (await manager.isAutoStartEnabled() && !(await manager.isRunning())) {
@@ -24,16 +27,22 @@ void main() async {
     }
   }
 
-  runApp(MyApp(serviceManager: manager));
+  runApp(MyApp(
+    serviceManager: manager,
+    intentService: intentService,
+  ));
 }
 
 class MyApp extends StatelessWidget {
   final ForegroundServiceManager serviceManager;
+  final IntentService intentService;
 
   MyApp({
     super.key,
     ForegroundServiceManager? serviceManager,
-  }) : serviceManager = serviceManager ?? FlutterForegroundServiceManager();
+    IntentService? intentService,
+  }) : serviceManager = serviceManager ?? FlutterForegroundServiceManager(),
+       intentService = intentService ?? AndroidIntentService();
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +52,7 @@ class MyApp extends StatelessWidget {
           create: (_) => CompanionState(serviceManager: serviceManager),
         ),
         ChangeNotifierProvider(
-          create: (_) => ToolDebugState(),
+          create: (_) => ToolDebugState(intentService: intentService),
         ),
       ],
       child: MaterialApp(

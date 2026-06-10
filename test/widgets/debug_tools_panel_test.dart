@@ -4,6 +4,17 @@ import 'package:provider/provider.dart';
 import 'package:flutter_mimo/presentation/ui/widgets/debug_tools_panel.dart';
 import 'package:flutter_mimo/presentation/state/tool_debug_state.dart';
 import 'package:flutter_mimo/data/models/tool_log_entry.dart';
+import 'package:flutter_mimo/data/services/intent_service.dart';
+
+class _MockIntentService implements IntentService {
+  @override
+  Future<bool> executeTool(String toolName, Map<String, dynamic> parameters) async {
+    return true; // Simulate success
+  }
+
+  @override
+  Future<void> showToast(String message) async {}
+}
 
 void main() {
   Widget createWidgetUnderTest(ToolDebugState state) {
@@ -19,9 +30,11 @@ void main() {
 
   group('DebugToolsPanel', () {
     late ToolDebugState state;
+    late _MockIntentService mockService;
 
     setUp(() {
-      state = ToolDebugState();
+      mockService = _MockIntentService();
+      state = ToolDebugState(intentService: mockService);
     });
 
     testWidgets('renders all tool buttons', (WidgetTester tester) async {

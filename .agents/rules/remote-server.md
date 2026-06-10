@@ -3,8 +3,8 @@ trigger: always_on
 ---
 
 ## Remote-Server & NFS Environment Rules
-- **Environment Context**: Flutter SDK and execution environment reside on the remote server (`nixon@192.168.99.10`). The local project directory is mounted via NFS to that server.
 - **fvm** : this project use FVM, to execute flutter command add fvm in front (fvm flutter docktor)
+- **Environment Context**: Flutter SDK and execution environment reside on the remote server (`nixon@192.168.99.10`). The local project directory is mounted via NFS to that server.
 - **Hot Reload / Run Preservation**: A `flutter run` session is currently active.
 - **File Changes via NFS**: Since the project is an NFS mount, the agent can write/edit files locally. These changes will sync automatically to the remote server and trigger the active hot refresh.
 - **Remote Git & CLI Operations**: 
