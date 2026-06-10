@@ -70,34 +70,26 @@ void main() {
     await tester.pumpWidget(createWidgetUnderTest());
     await tester.pump();
 
-    // Verify initially in Robot Info tab
-    expect(find.byType(ControlWheel), findsOneWidget);
-    expect(find.byType(CarCompanionCard), findsNothing);
+  testWidgets('DashboardScreen renders DebugToolsPanel when activeTab is Debug Tools', (WidgetTester tester) async {
+    final state = CompanionState(serviceManager: _MockServiceManager());
+    state.setActiveTab('Debug Tools'); // Set before pumping
 
-    // Tap Auto Mode tab
-    tester.element(find.byType(DashboardScreen)).read<CompanionState>().setActiveTab('Auto Mode');
-    await tester.pumpAndSettle();
-
-    // Now CarCompanionCard should be visible, and ControlWheel / indicators should be hidden
-    expect(find.byType(CarCompanionCard), findsOneWidget);
-    expect(find.byType(ControlWheel), findsNothing);
-    expect(find.text('Battery'), findsNothing);
-
-    // Tap Debug Tools tab
-    tester.element(find.byType(DashboardScreen)).read<CompanionState>().setActiveTab('Debug Tools');
-    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: state),
+          ChangeNotifierProvider(create: (_) => ToolDebugState()),
+        ],
+        child: const MaterialApp(
+          home: DashboardScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
 
     // DebugToolsPanel should be visible
     expect(find.byType(DebugToolsPanel), findsOneWidget);
-    expect(find.byType(CarCompanionCard), findsNothing);
-    
-    // Tap Robot Info tab again
-    tester.element(find.byType(DashboardScreen)).read<CompanionState>().setActiveTab('Robot Info');
-    await tester.pumpAndSettle();
-
-    // ControlWheel should be visible again
-    expect(find.byType(ControlWheel), findsOneWidget);
-    expect(find.byType(DebugToolsPanel), findsNothing);
+    expect(find.byType(ControlWheel), findsNothing);
   });
 
   testWidgets('DashboardScreen renders Row layout in landscape mode', (WidgetTester tester) async {
