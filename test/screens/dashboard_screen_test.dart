@@ -93,6 +93,7 @@ void main() {
     expect(find.byType(CarCompanionCard), findsNothing);
     
     // Tap Robot Info tab again
+    await tester.ensureVisible(find.text('Robot Info'));
     await tester.tap(find.text('Robot Info'));
     await tester.pumpAndSettle();
 
