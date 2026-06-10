@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.dapurai.mimo.flutter_mimo"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
