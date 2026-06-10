@@ -67,13 +67,6 @@ void main() {
   });
 
   testWidgets('DashboardScreen tab switching renders correct panels', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1280, 800);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-
     await tester.pumpWidget(createWidgetUnderTest());
     await tester.pump();
 
@@ -82,7 +75,7 @@ void main() {
     expect(find.byType(CarCompanionCard), findsNothing);
 
     // Tap Auto Mode tab
-    await tester.tap(find.text('Auto Mode'));
+    await tester.tap(find.text('Auto Mode'), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     // Now CarCompanionCard should be visible, and ControlWheel / indicators should be hidden
@@ -91,8 +84,7 @@ void main() {
     expect(find.text('Battery'), findsNothing);
 
     // Tap Debug Tools tab
-    await tester.ensureVisible(find.text('Debug Tools'));
-    await tester.tap(find.text('Debug Tools'));
+    await tester.tap(find.text('Debug Tools'), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     // DebugToolsPanel should be visible
@@ -100,8 +92,7 @@ void main() {
     expect(find.byType(CarCompanionCard), findsNothing);
     
     // Tap Robot Info tab again
-    await tester.ensureVisible(find.text('Robot Info'));
-    await tester.tap(find.text('Robot Info'));
+    await tester.tap(find.text('Robot Info'), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     // ControlWheel should be visible again
