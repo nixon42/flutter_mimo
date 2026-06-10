@@ -84,6 +84,7 @@ void main() {
     expect(find.text('Battery'), findsNothing);
 
     // Tap Debug Tools tab
+    await tester.ensureVisible(find.text('Debug Tools'));
     await tester.tap(find.text('Debug Tools'));
     await tester.pumpAndSettle();
 

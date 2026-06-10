@@ -21,12 +21,6 @@ void main() {
       final log = state.logs.first;
       expect(log.toolName, 'open_navigation');
       expect(log.parameters['destination'], 'Jakarta');
-      expect(log.status, ToolLogStatus.pending); // Or success depending on the mock logic.
-      
-      // Allow async operation to complete if mocked intent service runs
-      await Future.delayed(const Duration(milliseconds: 100));
-      
-      // Should be success/error based on our intent service, we'll assume success for now.
       expect(state.logs.first.status, ToolLogStatus.success);
     });
   });

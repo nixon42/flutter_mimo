@@ -168,11 +168,14 @@ class DebugToolsPanel extends StatelessWidget {
             children: [
               Icon(statusIcon, color: statusColor, size: 16),
               const SizedBox(width: 8),
-              Text(
-                log.toolName,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  log.toolName,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Text(
                 '${log.timestamp.hour}:${log.timestamp.minute}:${log.timestamp.second}',
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
