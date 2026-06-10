@@ -66,10 +66,6 @@ void main() {
     expect(find.byType(CarCompanionCard), findsNothing);
   });
 
-  testWidgets('DashboardScreen tab switching renders correct panels', (WidgetTester tester) async {
-    await tester.pumpWidget(createWidgetUnderTest());
-    await tester.pump();
-
   testWidgets('DashboardScreen renders DebugToolsPanel when activeTab is Debug Tools', (WidgetTester tester) async {
     final state = CompanionState(serviceManager: _MockServiceManager());
     state.setActiveTab('Debug Tools'); // Set before pumping
