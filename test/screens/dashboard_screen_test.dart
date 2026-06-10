@@ -67,6 +67,13 @@ void main() {
   });
 
   testWidgets('DashboardScreen tab switching renders correct panels', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(createWidgetUnderTest());
     await tester.pump();
 
