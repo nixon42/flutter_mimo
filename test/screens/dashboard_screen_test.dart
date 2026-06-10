@@ -5,8 +5,10 @@ import 'package:flutter_mimo/presentation/ui/screens/dashboard_screen.dart';
 import 'package:flutter_mimo/presentation/ui/widgets/control_wheel.dart';
 import 'package:flutter_mimo/presentation/ui/widgets/volume_control.dart';
 import 'package:flutter_mimo/presentation/ui/widgets/car_companion_card.dart';
+import 'package:flutter_mimo/presentation/ui/widgets/debug_tools_panel.dart';
 import 'package:flutter_mimo/data/services/foreground_service_manager.dart';
 import 'package:flutter_mimo/presentation/state/companion_state.dart';
+import 'package:flutter_mimo/presentation/state/tool_debug_state.dart';
 import 'package:provider/provider.dart';
 
 // Minimal mock to avoid native plugin calls in widget tests
@@ -24,20 +26,26 @@ class _MockServiceManager extends ForegroundServiceManager {
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('DashboardScreen renders robot indicators and control panels', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      ChangeNotifierProvider(
-        create: (_) => CompanionState(serviceManager: _MockServiceManager()),
-        child: const MaterialApp(
-          home: DashboardScreen(),
-        ),
+  Widget createWidgetUnderTest() {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CompanionState(serviceManager: _MockServiceManager())),
+        ChangeNotifierProvider(create: (_) => ToolDebugState()),
+      ],
+      child: const MaterialApp(
+        home: DashboardScreen(),
       ),
     );
+  }
+
+  testWidgets('DashboardScreen renders robot indicators and control panels', (WidgetTester tester) async {
+    await tester.pumpWidget(createWidgetUnderTest());
     await tester.pump();
 
     // Verify top bar
     expect(find.text('Mimo Control'), findsOneWidget);
     expect(find.text('Robot Info'), findsOneWidget);
+    expect(find.text('Debug Tools'), findsOneWidget);
 
     // Verify presence of child widgets
     expect(find.byType(ControlWheel), findsOneWidget);
@@ -59,14 +67,7 @@ void main() {
   });
 
   testWidgets('DashboardScreen tab switching renders correct panels', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      ChangeNotifierProvider(
-        create: (_) => CompanionState(serviceManager: _MockServiceManager()),
-        child: const MaterialApp(
-          home: DashboardScreen(),
-        ),
-      ),
-    );
+    await tester.pumpWidget(createWidgetUnderTest());
     await tester.pump();
 
     // Verify initially in Robot Info tab
@@ -82,13 +83,21 @@ void main() {
     expect(find.byType(ControlWheel), findsNothing);
     expect(find.text('Battery'), findsNothing);
 
+    // Tap Debug Tools tab
+    await tester.tap(find.text('Debug Tools'));
+    await tester.pumpAndSettle();
+
+    // DebugToolsPanel should be visible
+    expect(find.byType(DebugToolsPanel), findsOneWidget);
+    expect(find.byType(CarCompanionCard), findsNothing);
+    
     // Tap Robot Info tab again
     await tester.tap(find.text('Robot Info'));
     await tester.pumpAndSettle();
 
-    // ControlWheel should be visible again, CarCompanionCard hidden
+    // ControlWheel should be visible again
     expect(find.byType(ControlWheel), findsOneWidget);
-    expect(find.byType(CarCompanionCard), findsNothing);
+    expect(find.byType(DebugToolsPanel), findsNothing);
   });
 
   testWidgets('DashboardScreen renders Row layout in landscape mode', (WidgetTester tester) async {
@@ -100,14 +109,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await tester.pumpWidget(
-      ChangeNotifierProvider(
-        create: (_) => CompanionState(serviceManager: _MockServiceManager()),
-        child: const MaterialApp(
-          home: DashboardScreen(),
-        ),
-      ),
-    );
+    await tester.pumpWidget(createWidgetUnderTest());
     await tester.pump();
 
     // Verify ControlWheel and Status elements are both rendered in landscape layout

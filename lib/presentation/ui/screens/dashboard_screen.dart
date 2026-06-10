@@ -4,6 +4,7 @@ import '../../state/companion_state.dart';
 import '../widgets/control_wheel.dart';
 import '../widgets/volume_control.dart';
 import '../widgets/car_companion_card.dart';
+import '../widgets/debug_tools_panel.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -72,6 +73,8 @@ class DashboardScreen extends StatelessWidget {
         return _buildPlaceholderPanel('Sensors Panel\nComing Soon');
       case 'Calibration':
         return _buildPlaceholderPanel('Calibration Panel\nComing Soon');
+      case 'Debug Tools':
+        return const DebugToolsPanel();
       default:
         return const SizedBox.shrink();
     }
@@ -123,6 +126,8 @@ class DashboardScreen extends StatelessWidget {
                 _buildTopTab(context, 'Sensors'),
                 const SizedBox(width: 8),
                 _buildTopTab(context, 'Calibration'),
+                const SizedBox(width: 8),
+                _buildTopTab(context, 'Debug Tools'),
               ],
             ),
           ),

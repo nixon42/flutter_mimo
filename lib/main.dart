@@ -3,6 +3,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:provider/provider.dart';
 import 'data/services/foreground_service_manager.dart';
 import 'presentation/state/companion_state.dart';
+import 'presentation/state/tool_debug_state.dart';
 import 'presentation/ui/screens/dashboard_screen.dart';
 
 void main() async {
@@ -40,6 +41,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (_) => CompanionState(serviceManager: serviceManager),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ToolDebugState(),
         ),
       ],
       child: MaterialApp(
