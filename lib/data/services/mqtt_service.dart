@@ -76,12 +76,28 @@ class MQTTService {
 
     _client!.onConnected = () {
       debugPrint('MQTT Client connected.');
+      FlutterForegroundTask.updateService(
+        notificationTitle: '✅ Car Companion Active',
+        notificationText: 'Device: $deviceId • Connected',
+      );
       _publishOnlineStatusAndSubscribe(deviceId);
     };
 
     _client!.onAutoReconnected = () {
       debugPrint('MQTT Client auto-reconnected.');
+      FlutterForegroundTask.updateService(
+        notificationTitle: '✅ Car Companion Active',
+        notificationText: 'Device: $deviceId • Connected',
+      );
       _publishOnlineStatusAndSubscribe(deviceId);
+    };
+    
+    _client!.onDisconnected = () {
+      debugPrint('MQTT Client disconnected.');
+      FlutterForegroundTask.updateService(
+        notificationTitle: '⚠️ Car Companion Offline',
+        notificationText: 'Device: $deviceId • Disconnected',
+      );
     };
 
     bool connected = false;
