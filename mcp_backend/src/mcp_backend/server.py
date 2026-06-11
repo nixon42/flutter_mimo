@@ -25,17 +25,26 @@ async def _process_tool_call(tool_name: str, payload: dict) -> str:
         try:
             mqtt_bridge.connect()
         except Exception:
-            # Let it try to publish anyway, or fail
             pass
-    # We intentionally do NOT check if the device is online here.
-    # If the device is offline, the MQTT broker will queue the command (QoS 1).
-    # We will wait up to 60 seconds for the device to connect and send an ACK.
+    
+    is_online = mqtt_bridge.is_device_online(DEVICE_ID)
+    
+    # We ALWAYS publish the command to MQTT.
+    # If offline, the MQTT broker will queue it because of QoS 1.
     mqtt_bridge.publish_command(DEVICE_ID, tool_name, payload)
     
-    # Wait for ack (max 60 seconds per FSD)
-    ack_response = await mqtt_bridge.wait_for_ack(DEVICE_ID, timeout=60.0)
-    
     import json
+    
+    if not is_online:
+        # OPSI A: Jika offline, langsung return agar LLM tahu perintah masuk antrean
+        # tanpa harus menunggu timeout 10 detik dari platform.
+        return json.dumps({
+            "status": "queued",
+            "message": "Saat ini headunit sedang offline, perintah telah dimasukkan ke antrean dan akan dieksekusi begitu tersambung."
+        })
+    
+    # Jika online, tunggu ACK (maksimal 9.5 detik agar tidak menabrak batas 10 detik dari platform AI)
+    ack_response = await mqtt_bridge.wait_for_ack(DEVICE_ID, timeout=9.5)
     return json.dumps(ack_response)
 
 # Register Tools
