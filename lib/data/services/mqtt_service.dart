@@ -54,6 +54,16 @@ class MQTTService {
         .startClean();
     _client!.connectionMessage = connMessage;
 
+    _client!.onConnected = () {
+      debugPrint('MQTT Client connected.');
+      _publishOnlineStatusAndSubscribe(deviceId);
+    };
+
+    _client!.onAutoReconnected = () {
+      debugPrint('MQTT Client auto-reconnected.');
+      _publishOnlineStatusAndSubscribe(deviceId);
+    };
+
     bool connected = false;
     while (!connected) {
       try {
@@ -75,19 +85,11 @@ class MQTTService {
     if (_client!.connectionStatus!.state == MqttConnectionState.connected) {
       debugPrint('Connected to MQTT Broker: $broker');
 
-      // Publish online status
-      final builder = MqttClientPayloadBuilder();
-      builder.addString('{"status": "online"}');
-      _client!.publishMessage('device/$deviceId/status', MqttQos.atLeastOnce, builder.payload!, retain: true);
-
-      // Subscribe to command topic
-      final commandTopic = 'device/$deviceId/command';
-      _client!.subscribe(commandTopic, MqttQos.atLeastOnce);
-
       _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) async {
         final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
         final payload = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
+        final commandTopic = 'device/$deviceId/command';
         if (c[0].topic == commandTopic) {
           final ackPayload = await handleIncomingCommand(payload);
           _publishAck(deviceId, ackPayload);
@@ -100,6 +102,18 @@ class MQTTService {
       _client!.disconnect();
       return false;
     }
+  }
+
+  void _publishOnlineStatusAndSubscribe(String deviceId) {
+    if (_client == null || _client!.connectionStatus!.state != MqttConnectionState.connected) return;
+    
+    // Publish online status
+    final builder = MqttClientPayloadBuilder();
+    builder.addString('{"status": "online"}');
+    _client!.publishMessage('device/$deviceId/status', MqttQos.atLeastOnce, builder.payload!, retain: true);
+
+    // Subscribe to command topic
+    _client!.subscribe('device/$deviceId/command', MqttQos.atLeastOnce);
   }
 
   void _publishAck(String deviceId, Map<String, dynamic> payload) {
