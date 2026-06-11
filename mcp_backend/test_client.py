@@ -55,8 +55,24 @@ async def run_test():
                 try:
                     result = await session.call_tool(tool_name, tool_args)
                     print(f"\n🎯 Hasil dari Tool Call:")
+                    is_queued = False
                     for content in result.content:
                         print(f"   > {content.text}")
+                        if "queued" in content.text:
+                            is_queued = True
+                            
+                    if is_queued:
+                        print("\n⏳ Tool mengembalikan status 'queued' karena HP sedang offline!")
+                        print("👉 Script akan tetap menyala selama 60 detik.")
+                        print("👉 Silakan NYALAKAN APLIKASI FLUTTER sekarang untuk mengecek apakah antrean masuk!")
+                        
+                        # Hitung mundur 60 detik (tampilkan setiap 10 detik agar tidak membosankan)
+                        for i in range(60, 0, -10):
+                            print(f"   [Sisa waktu tunggu: {i} detik...]")
+                            await asyncio.sleep(10)
+                        
+                        print("\n⏰ Waktu tunggu simulasi habis.")
+                        
                 except Exception as e:
                     print(f"\n❌ Tool Call gagal (mungkin karena MQTT Timeout): {e}")
                     
