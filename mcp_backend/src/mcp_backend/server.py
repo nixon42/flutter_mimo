@@ -13,7 +13,7 @@ mcp = FastMCP("RobotCarCompanion")
 # Initialize MQTT Bridge
 MQTT_BROKER = os.environ.get("MQTT_BROKER", "localhost")
 MQTT_PORT = int(os.environ.get("MQTT_PORT", 1883))
-DEVICE_ID = os.environ.get("DEVICE_ID", "nixon_mimo_device")
+DEVICE_ID = os.environ.get("DEVICE_ID", "default_device")
 
 mqtt_bridge = MQTTBridge(broker_url=MQTT_BROKER, port=MQTT_PORT)
 
