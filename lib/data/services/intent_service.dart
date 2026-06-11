@@ -34,12 +34,32 @@ class AndroidIntentService implements IntentService {
           break;
         case 'open_music':
           final query = parameters['query']?.toString() ?? '';
-          final intent = AndroidIntent(
-            action: 'action_view',
-            data: 'spotify:search:$query',
-            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
-          );
-          await intent.launch();
+          final appName = parameters['app']?.toString() ?? 'spotify';
+          
+          String targetPackage = 'com.spotify.music';
+          if (appName == 'youtube_music') {
+            targetPackage = 'com.google.android.apps.youtube.music';
+          }
+          
+          if (query.isEmpty) {
+            // Jika kosong (minta play terakhir), cukup buka aplikasinya saja
+            final intent = AndroidIntent(
+              action: 'android.intent.action.MAIN',
+              category: 'android.intent.category.LAUNCHER',
+              package: targetPackage,
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+            );
+            await intent.launch();
+          } else {
+            // Gunakan intent bawaan Android untuk "Play from Search" (bisa auto-play)
+            final intent = AndroidIntent(
+              action: 'android.media.action.MEDIA_PLAY_FROM_SEARCH',
+              package: targetPackage,
+              arguments: {'query': query},
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+            );
+            await intent.launch();
+          }
           result = true;
           break;
         case 'open_app':

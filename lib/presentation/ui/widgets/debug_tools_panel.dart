@@ -58,7 +58,7 @@ class DebugToolsPanel extends StatelessWidget {
                 state.triggerTool('open_navigation', {'destination': 'Monas, Jakarta', 'app': 'google_maps'});
               }),
               _buildToolButton('Open Music', () {
-                state.triggerTool('open_music', {'app': 'spotify', 'action': 'play_playlist', 'query': 'Top 50 Indonesia'});
+                state.triggerTool('open_music', {'app': 'spotify', 'action': 'play_song', 'query': ''});
               }),
               _buildToolButton('Open App', () {
                 state.triggerTool('open_app', {
