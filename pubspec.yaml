@@ -41,6 +41,7 @@ dependencies:
   url_launcher: ^6.3.0
   fluttertoast: ^9.1.0
   android_intent_plus: ^6.0.0
+  mqtt_client: ^10.11.11
 
 dev_dependencies:
   flutter_test:

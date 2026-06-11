@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'mqtt_service.dart';
+import 'intent_service.dart';
 
 abstract class ForegroundServiceManager {
   Future<void> init();
@@ -24,19 +26,39 @@ void startCallback() {
 }
 
 class MimoTaskHandler extends TaskHandler {
+  MQTTService? _mqttService;
+  String? _deviceId;
+  String? _serverUrl;
+
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     debugPrint('Car Companion service started at $timestamp');
+    
+    // We need to fetch settings directly from SharedPreferences since we're in an isolate
+    final prefs = await SharedPreferences.getInstance();
+    _deviceId = prefs.getString('device_id') ?? 'default_device';
+    _serverUrl = prefs.getString('server_url') ?? '192.168.99.10';
+
+    // Initialize MQTT and Intent Service
+    final intentService = AndroidIntentService();
+    _mqttService = MQTTService(intentService: intentService);
+    
+    await _mqttService!.connect(_serverUrl!, _deviceId!);
   }
 
   @override
   void onRepeatEvent(DateTime timestamp) {
     debugPrint('Car Companion service heartbeat at $timestamp');
+    // Ensure MQTT is still connected
+    if (_mqttService != null) {
+      // Basic heartbeat logic could be added here
+    }
   }
 
   @override
   Future<void> onDestroy(DateTime timestamp) async {
     debugPrint('Car Companion service destroyed at $timestamp');
+    _mqttService?.disconnect();
   }
 }
 
