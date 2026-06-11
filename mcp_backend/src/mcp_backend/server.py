@@ -38,8 +38,8 @@ async def _process_tool_call(tool_name: str, payload: dict) -> str:
             
     mqtt_bridge.publish_command(DEVICE_ID, tool_name, payload)
     
-    # Wait for ack (max 10 seconds per FSD)
-    ack_response = await mqtt_bridge.wait_for_ack(DEVICE_ID, timeout=10.0)
+    # Wait for ack (max 60 seconds per FSD)
+    ack_response = await mqtt_bridge.wait_for_ack(DEVICE_ID, timeout=60.0)
     
     import json
     return json.dumps(ack_response)
