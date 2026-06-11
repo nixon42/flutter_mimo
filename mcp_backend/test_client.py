@@ -37,10 +37,10 @@ async def run_test():
                     print(f"   - {tool.name}: {tool.description}")
                 
                 # 2. Simulasi pemanggilan tool (Tool Call)
-                tool_name = "open_navigation"
+                tool_name = "open_app"
                 tool_args = {
-                    "destination": "Monas, Jakarta",
-                    "app": "google_maps"
+                    "package_name": "org.mozilla.firefox",
+                    "uri": "https://www.google.com/search?q=restoran+padang+di+kediri"
                 }
                 
                 # Beri waktu 5 detik agar aplikasi Android (MQTT client) bisa menyadari 
