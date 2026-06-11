@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'intent_service.dart';
 
 class MQTTService {
@@ -26,6 +27,10 @@ class MQTTService {
       
       final success = await intentService.executeTool(command, args);
       
+      if (kDebugMode) {
+        importFlutterForegroundTaskAndSend(command, args, success);
+      }
+
       if (success) {
         return {'status': 'success', 'message': 'Executed $command successfully'};
       } else {
@@ -35,6 +40,18 @@ class MQTTService {
       debugPrint('Error parsing MQTT payload: $e');
       return {'status': 'error', 'message': 'Invalid payload format: $e'};
     }
+  }
+
+  void importFlutterForegroundTaskAndSend(String command, Map<String, dynamic> args, bool success) {
+    try {
+      final data = jsonEncode({
+        'type': 'mqtt_tool_log',
+        'tool': command,
+        'args': args,
+        'success': success,
+      });
+      FlutterForegroundTask.sendDataToMain(data);
+    } catch (_) {}
   }
 
   Future<bool> connect(String broker, String deviceId) async {

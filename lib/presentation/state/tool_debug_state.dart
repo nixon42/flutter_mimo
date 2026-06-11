@@ -45,6 +45,11 @@ class ToolDebugState extends ChangeNotifier {
     }
   }
 
+  void addLogEntry(ToolLogEntry entry) {
+    _logs.insert(0, entry);
+    notifyListeners();
+  }
+
   void clearLogs() {
     _logs.clear();
     notifyListeners();

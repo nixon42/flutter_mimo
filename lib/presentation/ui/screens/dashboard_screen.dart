@@ -1,13 +1,66 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../../state/companion_state.dart';
+import '../../state/tool_debug_state.dart';
+import '../../data/models/tool_log_entry.dart';
 import '../widgets/control_wheel.dart';
 import '../widgets/volume_control.dart';
 import '../widgets/car_companion_card.dart';
 import '../widgets/debug_tools_panel.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (kDebugMode) {
+      FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (kDebugMode) {
+      FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);
+    }
+    super.dispose();
+  }
+
+  void _onReceiveTaskData(Object data) {
+    if (data is String) {
+      try {
+        final map = jsonDecode(data);
+        if (map['type'] == 'mqtt_tool_log') {
+          final tool = map['tool'];
+          final args = map['args'];
+          final success = map['success'] == true;
+          
+          final entry = ToolLogEntry(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            timestamp: DateTime.now(),
+            toolName: tool,
+            parameters: args,
+            status: success ? ToolLogStatus.success : ToolLogStatus.error,
+            resultMessage: success ? 'Successfully executed $tool' : 'Failed to execute $tool',
+          );
+          
+          // Add directly to ToolDebugState without re-executing
+          context.read<ToolDebugState>().addLogEntry(entry);
+        }
+      } catch (e) {
+        debugPrint('Error parsing task data: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
