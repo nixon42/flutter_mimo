@@ -1,6 +1,7 @@
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 abstract class IntentService {
   Future<bool> executeTool(String toolName, Map<String, dynamic> parameters);
@@ -76,12 +77,22 @@ class AndroidIntentService implements IntentService {
           break;
         case 'phone_call':
           final number = parameters['number']?.toString() ?? '';
-          final intent = AndroidIntent(
-            action: 'action_view',
-            data: 'tel:$number',
-            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
-          );
-          await intent.launch();
+          if (await Permission.phone.isGranted) {
+            final intent = AndroidIntent(
+              action: 'android.intent.action.CALL',
+              data: 'tel:$number',
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+            );
+            await intent.launch();
+          } else {
+            // Fallback ke dialer biasa jika user belum memberikan izin
+            final intent = AndroidIntent(
+              action: 'action_view',
+              data: 'tel:$number',
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+            );
+            await intent.launch();
+          }
           result = true;
           break;
         case 'send_message':

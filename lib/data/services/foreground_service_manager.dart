@@ -116,6 +116,11 @@ class FlutterForegroundServiceManager implements ForegroundServiceManager {
     if (await Permission.systemAlertWindow.isDenied) {
       await Permission.systemAlertWindow.request();
     }
+    
+    // Request CALL_PHONE to allow direct phone calling
+    if (await Permission.phone.isDenied) {
+      await Permission.phone.request();
+    }
 
     if (await FlutterForegroundTask.isRunningService) {
       // Service is already running, update it
