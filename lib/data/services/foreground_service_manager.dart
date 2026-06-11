@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'mqtt_service.dart';
 import 'intent_service.dart';
 
@@ -109,6 +110,11 @@ class FlutterForegroundServiceManager implements ForegroundServiceManager {
     final hasPermission = await FlutterForegroundTask.requestNotificationPermission();
     if (hasPermission != NotificationPermission.granted) {
       debugPrint('Notification permission denied.');
+    }
+
+    // Request SYSTEM_ALERT_WINDOW to allow starting activities from background (Android 10+)
+    if (await Permission.systemAlertWindow.isDenied) {
+      await Permission.systemAlertWindow.request();
     }
 
     if (await FlutterForegroundTask.isRunningService) {
