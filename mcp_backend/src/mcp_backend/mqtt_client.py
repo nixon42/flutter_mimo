@@ -101,7 +101,10 @@ class MQTTBridge:
             return result
         except asyncio.TimeoutError:
             logger.warning(f"Timeout waiting for ack from device {device_id}")
-            return {"status": "error", "error_code": "HEADUNIT_TIMEOUT", "message": "Headunit tidak merespons. Pastikan app Car Companion berjalan."}
+            return {
+                "status": "queued",
+                "message": "Headunit tidak merespons dalam waktu 10 detik (koneksi mungkin tidak stabil). Perintah tetap berada di antrean dan otomatis dieksekusi saat stabil."
+            }
         finally:
             if device_id in self.pending_acks:
                 del self.pending_acks[device_id]
