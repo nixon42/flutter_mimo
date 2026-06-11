@@ -43,6 +43,11 @@ async def run_test():
                     "app": "google_maps"
                 }
                 
+                # Beri waktu 5 detik agar aplikasi Android (MQTT client) bisa menyadari 
+                # broker baru menyala dan melakukan auto-reconnect.
+                print("\n⏳ Menunggu 5 detik agar aplikasi Flutter di HP bisa auto-reconnect ke broker...")
+                await asyncio.sleep(5)
+                
                 print(f"\n🤖 LLM mengeksekusi tool: '{tool_name}' dengan argumen: {tool_args}")
                 
                 # CATATAN: Panggilan ini mungkin memakan waktu hingga 10 detik menunggu ACK dari MQTT
