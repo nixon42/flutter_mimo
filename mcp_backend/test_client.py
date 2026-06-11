@@ -45,8 +45,8 @@ async def run_test():
                 
                 # Beri waktu 5 detik agar aplikasi Android (MQTT client) bisa menyadari 
                 # broker baru menyala dan melakukan auto-reconnect.
-                print("\n⏳ Menunggu 5 detik agar aplikasi Flutter di HP bisa auto-reconnect ke broker...")
-                await asyncio.sleep(5)
+                print("\n⏳ Menunggu 20 detik agar aplikasi Flutter di HP bisa auto-reconnect ke broker...")
+                await asyncio.sleep(20)
                 
                 print(f"\n🤖 LLM mengeksekusi tool: '{tool_name}' dengan argumen: {tool_args}")
                 
@@ -58,20 +58,17 @@ async def run_test():
                     is_queued = False
                     for content in result.content:
                         print(f"   > {content.text}")
-                        if "queued" in content.text:
-                            is_queued = True
-                            
-                    if is_queued:
-                        print("\n⏳ Tool mengembalikan status 'queued' karena HP sedang offline!")
-                        print("👉 Script akan tetap menyala selama 60 detik.")
-                        print("👉 Silakan NYALAKAN APLIKASI FLUTTER sekarang untuk mengecek apakah antrean masuk!")
-                        
-                        # Hitung mundur 60 detik (tampilkan setiap 10 detik agar tidak membosankan)
-                        for i in range(60, 0, -10):
-                            print(f"   [Sisa waktu tunggu: {i} detik...]")
-                            await asyncio.sleep(10)
-                        
-                        print("\n⏰ Waktu tunggu simulasi habis.")
+                    # SELALU tunggu 60 detik agar user bisa mengetes reconnet
+                    print("\n⏳ SCRIPT TEST: Memberikan waktu 60 detik sebelum mematikan broker lokal...")
+                    print("👉 Jika tadi HP-mu offline/putus mendadak, SEKARANG adalah waktunya menyalakan ulang WiFi HP-mu.")
+                    print("👉 Perhatikan apakah aplikasi Flutter langsung mengeksekusi pesan dari antrean!")
+                    
+                    # Hitung mundur 60 detik (tampilkan setiap 10 detik agar tidak membosankan)
+                    for i in range(60, 0, -10):
+                        print(f"   [Sisa waktu broker hidup: {i} detik...]")
+                        await asyncio.sleep(10)
+                    
+                    print("\n⏰ Waktu tunggu simulasi habis.")
                         
                 except Exception as e:
                     print(f"\n❌ Tool Call gagal (mungkin karena MQTT Timeout): {e}")
