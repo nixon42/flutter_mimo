@@ -1,5 +1,5 @@
-import 'package:url_launcher/url_launcher.dart';
 import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 abstract class IntentService {
@@ -24,14 +24,23 @@ class AndroidIntentService implements IntentService {
       switch (toolName) {
         case 'open_navigation':
           final dest = parameters['destination']?.toString() ?? '';
-          final uri = Uri.parse('google.navigation:q=$dest&mode=d');
-          result = await launchUrl(uri);
+          final intent = AndroidIntent(
+            action: 'action_view',
+            data: 'google.navigation:q=$dest&mode=d',
+            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+          );
+          await intent.launch();
+          result = true;
           break;
         case 'open_music':
-          // Attempt Spotify as an example deep link
           final query = parameters['query']?.toString() ?? '';
-          final uri = Uri.parse('spotify:search:$query');
-          result = await launchUrl(uri);
+          final intent = AndroidIntent(
+            action: 'action_view',
+            data: 'spotify:search:$query',
+            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+          );
+          await intent.launch();
+          result = true;
           break;
         case 'open_app':
           final packageName = parameters['package_name']?.toString() ?? '';
@@ -39,6 +48,7 @@ class AndroidIntentService implements IntentService {
             final intent = AndroidIntent(
               action: 'action_view',
               package: packageName,
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
             );
             await intent.launch();
             result = true;
@@ -46,20 +56,34 @@ class AndroidIntentService implements IntentService {
           break;
         case 'phone_call':
           final number = parameters['number']?.toString() ?? '';
-          final uri = Uri.parse('tel:$number');
-          result = await launchUrl(uri);
+          final intent = AndroidIntent(
+            action: 'action_view',
+            data: 'tel:$number',
+            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+          );
+          await intent.launch();
+          result = true;
           break;
         case 'send_message':
           final contact = parameters['contact']?.toString() ?? '';
           final msg = parameters['message']?.toString() ?? '';
           final app = parameters['app']?.toString();
           if (app == 'whatsapp') {
-            final uri = Uri.parse('whatsapp://send?phone=$contact&text=$msg');
-            result = await launchUrl(uri);
+            final intent = AndroidIntent(
+              action: 'action_view',
+              data: 'whatsapp://send?phone=$contact&text=$msg',
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+            );
+            await intent.launch();
           } else {
-            final uri = Uri.parse('sms:$contact?body=$msg');
-            result = await launchUrl(uri);
+            final intent = AndroidIntent(
+              action: 'action_view',
+              data: 'sms:$contact?body=$msg',
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+            );
+            await intent.launch();
           }
+          result = true;
           break;
         case 'get_headunit_status':
           // Doesn't open an app
