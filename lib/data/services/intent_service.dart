@@ -65,10 +65,14 @@ class AndroidIntentService implements IntentService {
           break;
         case 'open_app':
           final packageName = parameters['package_name']?.toString() ?? '';
-          if (packageName.isNotEmpty) {
+          final uriStr = parameters['uri']?.toString() ?? '';
+          
+          if (packageName.isNotEmpty || uriStr.isNotEmpty) {
             final intent = AndroidIntent(
-              action: 'action_view',
-              package: packageName,
+              action: uriStr.isNotEmpty ? 'action_view' : 'android.intent.action.MAIN',
+              package: packageName.isNotEmpty ? packageName : null,
+              data: uriStr.isNotEmpty ? uriStr : null,
+              category: uriStr.isEmpty ? 'android.intent.category.LAUNCHER' : null,
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
             );
             await intent.launch();
