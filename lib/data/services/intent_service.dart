@@ -27,7 +27,7 @@ class AndroidIntentService implements IntentService {
           final intent = AndroidIntent(
             action: 'action_view',
             data: 'google.navigation:q=$dest&mode=d',
-            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
           );
           await intent.launch();
           result = true;
@@ -37,7 +37,7 @@ class AndroidIntentService implements IntentService {
           final intent = AndroidIntent(
             action: 'action_view',
             data: 'spotify:search:$query',
-            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
           );
           await intent.launch();
           result = true;
@@ -48,7 +48,7 @@ class AndroidIntentService implements IntentService {
             final intent = AndroidIntent(
               action: 'action_view',
               package: packageName,
-              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
             );
             await intent.launch();
             result = true;
@@ -59,7 +59,7 @@ class AndroidIntentService implements IntentService {
           final intent = AndroidIntent(
             action: 'action_view',
             data: 'tel:$number',
-            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
           );
           await intent.launch();
           result = true;
@@ -72,14 +72,14 @@ class AndroidIntentService implements IntentService {
             final intent = AndroidIntent(
               action: 'action_view',
               data: 'whatsapp://send?phone=$contact&text=$msg',
-              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
             );
             await intent.launch();
           } else {
             final intent = AndroidIntent(
               action: 'action_view',
               data: 'sms:$contact?body=$msg',
-              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
             );
             await intent.launch();
           }
