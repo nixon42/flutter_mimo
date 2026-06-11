@@ -27,17 +27,22 @@ async def _process_tool_call(tool_name: str, payload: dict) -> str:
         except Exception:
             # Let it try to publish anyway, or fail
             pass
+    # Check if device is connected to MQTT
+    if not mqtt_bridge.is_device_online(DEVICE_ID):
+        import json
+        return json.dumps({
+            "status": "error", 
+            "error_code": "HEADUNIT_DISCONNECTED", 
+            "message": "Headunit sedang tidak terhubung."
+        })
             
     mqtt_bridge.publish_command(DEVICE_ID, tool_name, payload)
     
     # Wait for ack (max 10 seconds per FSD)
     ack_response = await mqtt_bridge.wait_for_ack(DEVICE_ID, timeout=10.0)
     
-    if ack_response.get("status") == "success":
-        return ack_response.get("message", "Success")
-    else:
-        # Return error message
-        return f"Error: {ack_response.get('message', 'Unknown error')}"
+    import json
+    return json.dumps(ack_response)
 
 # Register Tools
 @mcp.tool()

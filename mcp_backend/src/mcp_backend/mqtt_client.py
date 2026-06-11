@@ -20,6 +20,9 @@ class MQTTBridge:
         # Format: {"device_id": asyncio.Future}
         self.pending_acks = {}
         
+        # Track device online/offline status
+        self.device_status = {}
+        
     def connect(self):
         """Connects to the MQTT broker and starts the network loop."""
         try:
@@ -36,9 +39,8 @@ class MQTTBridge:
         
     def _on_connect(self, client, userdata, flags, rc, properties=None):
         logger.info(f"Connected to MQTT broker with result code {rc}")
-        # Note: We should probably subscribe to all acks here, or dynamically when waiting
-        # Subscribing to wildcard for all devices ack: device/+/ack
         self.client.subscribe("device/+/ack")
+        self.client.subscribe("device/+/status")
         
     def _on_message(self, client, userdata, msg):
         topic = msg.topic
@@ -46,23 +48,32 @@ class MQTTBridge:
             payload = json.loads(msg.payload.decode('utf-8'))
             logger.debug(f"Received message on {topic}: {payload}")
             
-            # Extract device_id from topic (format: device/{device_id}/ack)
             parts = topic.split('/')
-            if len(parts) >= 3 and parts[0] == "device" and parts[2] == "ack":
+            if len(parts) >= 3 and parts[0] == "device":
                 device_id = parts[1]
+                msg_type = parts[2]
                 
-                # If there's a pending future for this device, resolve it
-                if device_id in self.pending_acks:
-                    future = self.pending_acks[device_id]
-                    if not future.done():
-                        # Use call_soon_threadsafe because paho-mqtt runs in a separate thread
-                        loop = future.get_loop()
-                        loop.call_soon_threadsafe(future.set_result, payload)
+                if msg_type == "ack":
+                    # If there's a pending future for this device, resolve it
+                    if device_id in self.pending_acks:
+                        future = self.pending_acks[device_id]
+                        if not future.done():
+                            loop = future.get_loop()
+                            loop.call_soon_threadsafe(future.set_result, payload)
+                            
+                elif msg_type == "status":
+                    status = payload.get("status", "offline")
+                    self.device_status[device_id] = status
+                    logger.info(f"Device {device_id} is now {status}")
                         
         except json.JSONDecodeError:
             logger.error(f"Failed to decode MQTT message from {topic}")
         except Exception as e:
             logger.error(f"Error handling MQTT message: {e}")
+
+    def is_device_online(self, device_id: str) -> bool:
+        """Returns True if the device is currently online based on LWT/status."""
+        return self.device_status.get(device_id) == "online"
 
     def publish_command(self, device_id: str, tool_name: str, payload: dict):
         """Publishes a command to the target device's command topic."""
@@ -90,7 +101,7 @@ class MQTTBridge:
             return result
         except asyncio.TimeoutError:
             logger.warning(f"Timeout waiting for ack from device {device_id}")
-            return {"status": "error", "message": f"Timeout waiting for headunit acknowledgement after {timeout} seconds"}
+            return {"status": "error", "error_code": "HEADUNIT_TIMEOUT", "message": "Headunit tidak merespons. Pastikan app Car Companion berjalan."}
         finally:
             if device_id in self.pending_acks:
                 del self.pending_acks[device_id]

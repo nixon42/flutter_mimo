@@ -43,6 +43,15 @@ class MQTTService {
     _client!.keepAlivePeriod = 60;
     _client!.autoReconnect = true;
 
+    final connMessage = MqttConnectMessage()
+        .withClientIdentifier('flutter_mimo_$deviceId')
+        .withWillTopic('device/$deviceId/status')
+        .withWillMessage('{"status": "offline"}')
+        .withWillQos(MqttQos.atLeastOnce)
+        .withWillRetain()
+        .startClean();
+    _client!.connectionMessage = connMessage;
+
     try {
       await _client!.connect();
     } catch (e) {
@@ -53,6 +62,11 @@ class MQTTService {
 
     if (_client!.connectionStatus!.state == MqttConnectionState.connected) {
       debugPrint('Connected to MQTT Broker: $broker');
+
+      // Publish online status
+      final builder = MqttClientPayloadBuilder();
+      builder.addString('{"status": "online"}');
+      _client!.publishMessage('device/$deviceId/status', MqttQos.atLeastOnce, builder.payload!, retain: true);
 
       // Subscribe to command topic
       final commandTopic = 'device/$deviceId/command';
