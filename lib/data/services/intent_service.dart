@@ -2,6 +2,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:platform/platform.dart';
 
 abstract class IntentService {
   Future<bool> executeTool(String toolName, Map<String, dynamic> parameters);
@@ -9,6 +10,10 @@ abstract class IntentService {
 }
 
 class AndroidIntentService implements IntentService {
+  final Platform _platform;
+
+  AndroidIntentService({Platform? platform}) : _platform = platform ?? const LocalPlatform();
+
   @override
   Future<void> showToast(String message) async {
     await Fluttertoast.showToast(
@@ -29,6 +34,7 @@ class AndroidIntentService implements IntentService {
             action: 'action_view',
             data: 'google.navigation:q=$dest&mode=d',
             flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+            platform: _platform,
           );
           await intent.launch();
           result = true;
@@ -49,6 +55,7 @@ class AndroidIntentService implements IntentService {
               category: 'android.intent.category.LAUNCHER',
               package: targetPackage,
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+              platform: _platform,
             );
             await intent.launch();
           } else {
@@ -58,6 +65,7 @@ class AndroidIntentService implements IntentService {
               package: targetPackage,
               arguments: {'query': query},
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+              platform: _platform,
             );
             await intent.launch();
           }
@@ -74,6 +82,7 @@ class AndroidIntentService implements IntentService {
               data: uriStr.isNotEmpty ? uriStr : null,
               category: uriStr.isEmpty ? 'android.intent.category.LAUNCHER' : null,
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+              platform: _platform,
             );
             await intent.launch();
             result = true;
@@ -86,6 +95,7 @@ class AndroidIntentService implements IntentService {
               action: 'android.intent.action.CALL',
               data: 'tel:$number',
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+              platform: _platform,
             );
             await intent.launch();
           } else {
@@ -94,6 +104,7 @@ class AndroidIntentService implements IntentService {
               action: 'action_view',
               data: 'tel:$number',
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+              platform: _platform,
             );
             await intent.launch();
           }
@@ -108,6 +119,7 @@ class AndroidIntentService implements IntentService {
               action: 'action_view',
               data: 'whatsapp://send?phone=$contact&text=$msg',
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+              platform: _platform,
             );
             await intent.launch();
           } else {
@@ -115,6 +127,7 @@ class AndroidIntentService implements IntentService {
               action: 'action_view',
               data: 'sms:$contact?body=$msg',
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+              platform: _platform,
             );
             await intent.launch();
           }
