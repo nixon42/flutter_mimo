@@ -24,7 +24,7 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
       _deviceIdController.text = state.deviceId;
       _serverUrlController.text = state.serverUrl.isNotEmpty 
           ? state.serverUrl 
-          : 'https://mcp-android.xiaozhi.me/api/v1';
+          : '192.168.99.10';
     });
   }
 
@@ -161,9 +161,9 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
               controller: _serverUrlController,
               enabled: !state.isRunning,
               decoration: const InputDecoration(
-                labelText: 'MCP Server URL',
+                labelText: 'MQTT Broker (IP / Domain)',
                 labelStyle: TextStyle(color: Colors.white70, fontSize: 13),
-                hintText: 'https://mcp-android.xiaozhi.me/api/v1',
+                hintText: 'e.g. 192.168.99.10',
                 prefixIcon: Icon(Icons.cloud_queue, color: Colors.white54, size: 20),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF3B3C42)),
@@ -175,10 +175,13 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
               style: const TextStyle(color: Colors.white, fontSize: 14),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Server URL cannot be empty';
+                  return 'Broker address cannot be empty';
                 }
-                if (!value.startsWith('http://') && !value.startsWith('https://')) {
-                  return 'URL must start with http:// or https://';
+                if (value.startsWith('http://') || value.startsWith('https://')) {
+                  return 'Hanya masukkan IP atau Domain saja (tanpa http://)';
+                }
+                if (value.contains('/')) {
+                  return 'Jangan sertakan path atau karakter (/)';
                 }
                 return null;
               },
