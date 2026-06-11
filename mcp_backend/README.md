@@ -68,6 +68,25 @@ Kami menyediakan `test_client.py` yang berfungsi sebagai "Simulator LLM". Anda d
    ```
 4. Perhatikan layar Android. Aplikasi seharusnya memproses notifikasi MQTT dan membuka Google Maps secara otomatis. Skrip Python akan mencetak balasan sukses (Acknowledgement).
 
+## Mengatasi Bug Offline Queueing di AMQTT (Local Testing)
+
+Saat melakukan pengetesan *offline queueing* secara lokal, ada kalanya aplikasi Flutter tiba-tiba kehilangan koneksi internet (contoh: mobil melewati terowongan). Ini menyebabkan koneksi TCP terputus secara sepihak (*half-open connection*).
+
+Secara bawaan, library broker `amqtt` memiliki sebuah **bug/keterbatasan fatal**: ia hanya mau menunggu *ACK* selama 5 detik. Jika dalam 5 detik HP tidak merespons (karena sinyal mati), `amqtt` akan membuang pesan *command* tersebut untuk selamanya alih-alih menyimpannya di antrean offline.
+
+Untuk memperbaiki ini di lingkungan *virtual environment* lokal Anda, kami telah menyediakan *script patch*:
+
+```bash
+uv run patch_amqtt.py
+```
+
+**Apa yang dilakukan script ini?**
+Script ini mencari lokasi library `amqtt` di dalam `.venv` Anda dan mengubah nilai *timeout* yang *hardcoded* dari 5 detik menjadi 90 detik. Dengan begitu, mekanisme standar *Keep-Alive* MQTT (60 detik) akan berjalan lebih dulu untuk mendeteksi matinya sinyal, lalu menyimpan pesan Anda secara aman ke dalam antrean *offline*.
+
+> **Catatan:** Jika Anda mem-publish aplikasi ke *Production* dengan menggunakan Public Broker ternama (seperti `broker.emqx.io` atau Mosquitto yang disebutkan di FSD), Anda tidak akan mengalami bug ini karena broker publik sangat stabil menangani *half-open connection*.
+
+## Troubleshooting
+
 ---
 
 ## 🌐 Struktur Topik MQTT
