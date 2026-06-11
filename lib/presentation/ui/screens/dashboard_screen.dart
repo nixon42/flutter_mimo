@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../../state/companion_state.dart';
 import '../../state/tool_debug_state.dart';
-import '../../data/models/tool_log_entry.dart';
+import '../../../data/models/tool_log_entry.dart';
 import '../widgets/control_wheel.dart';
 import '../widgets/volume_control.dart';
 import '../widgets/car_companion_card.dart';
