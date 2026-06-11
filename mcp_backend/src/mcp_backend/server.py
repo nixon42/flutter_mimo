@@ -13,7 +13,7 @@ mcp = FastMCP("RobotCarCompanion")
 # Initialize MQTT Bridge
 MQTT_BROKER = os.environ.get("MQTT_BROKER", "localhost")
 MQTT_PORT = int(os.environ.get("MQTT_PORT", 1883))
-DEVICE_ID = os.environ.get("DEVICE_ID", "default_device")
+DEVICE_ID = os.environ.get("DEVICE_ID", "nixon_mimo_device")
 
 mqtt_bridge = MQTTBridge(broker_url=MQTT_BROKER, port=MQTT_PORT)
 
@@ -102,34 +102,51 @@ async def get_headunit_status() -> str:
     payload = tools.get_headunit_status()
     return await _process_tool_call("get_headunit_status", payload)
 
+mosquitto_process = None
+
+def terminate_mosquitto():
+    global mosquitto_process
+    if mosquitto_process:
+        import logging
+        logging.info("Stopping Mosquitto broker...")
+        mosquitto_process.terminate()
+        mosquitto_process.wait()
+
 def start_broker_sync():
-    """Starts the embedded AMQTT broker in a separate thread's event loop."""
+    """Starts Eclipse Mosquitto. Fallbacks to embedded AMQTT if not installed."""
+    import subprocess
+    import logging
+    import os
+    global mosquitto_process
+    
+    config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "local_mqtt.conf"))
+    
+    try:
+        # Popen runs Mosquitto in the background
+        mosquitto_process = subprocess.Popen(["mosquitto", "-c", config_path])
+        logging.info("Eclipse Mosquitto broker started successfully on port 1883.")
+        return
+    except FileNotFoundError:
+        logging.warning("Mosquitto is NOT installed. Falling back to AMQTT (Buggy Offline Queueing).")
+        logging.warning("Please install mosquitto: sudo pacman -S mosquitto")
+    
+    # --- FALLBACK AMQTT ---
     import asyncio
     from amqtt.broker import Broker
     
     config = {
-        'listeners': {
-            'default': {
-                'type': 'tcp',
-                'bind': '0.0.0.0:1883',
-            }
-        },
+        'listeners': {'default': {'type': 'tcp', 'bind': '0.0.0.0:1883'}},
         'sys_interval': 10,
-        'auth': {
-            'allow-anonymous': True
-        }
+        'auth': {'allow-anonymous': True}
     }
     
     async def run_broker():
         try:
             broker = Broker(config)
             await broker.start()
-            import logging
             logging.info("Embedded AMQTT Broker started on port 1883")
-            # Wait forever
             await asyncio.Event().wait()
         except Exception as e:
-            import logging
             logging.error(f"Failed to start embedded MQTT broker: {e}")
 
     loop = asyncio.new_event_loop()
@@ -140,8 +157,12 @@ def start_broker_sync():
 def main():
     import threading
     import time
+    import atexit
     
-    # Start embedded broker in background thread
+    # Register cleanup for mosquitto
+    atexit.register(terminate_mosquitto)
+    
+    # Start broker (Mosquitto or AMQTT fallback) in background thread
     broker_thread = threading.Thread(target=start_broker_sync, daemon=True)
     broker_thread.start()
     
