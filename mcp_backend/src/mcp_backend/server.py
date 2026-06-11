@@ -94,7 +94,52 @@ async def get_headunit_status() -> str:
     payload = tools.get_headunit_status()
     return await _process_tool_call("get_headunit_status", payload)
 
+def start_broker_sync():
+    """Starts the embedded AMQTT broker in a separate thread's event loop."""
+    import asyncio
+    from amqtt.broker import Broker
+    
+    config = {
+        'listeners': {
+            'default': {
+                'type': 'tcp',
+                'bind': '0.0.0.0:1883',
+            }
+        },
+        'sys_interval': 10,
+        'auth': {
+            'allow-anonymous': True
+        }
+    }
+    
+    async def run_broker():
+        try:
+            broker = Broker(config)
+            await broker.start()
+            import logging
+            logging.info("Embedded AMQTT Broker started on port 1883")
+            # Wait forever
+            await asyncio.Event().wait()
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to start embedded MQTT broker: {e}")
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run_broker())
+
+
 def main():
+    import threading
+    import time
+    
+    # Start embedded broker in background thread
+    broker_thread = threading.Thread(target=start_broker_sync, daemon=True)
+    broker_thread.start()
+    
+    # Give broker a second to bind to port
+    time.sleep(1)
+    
     # Attempt to connect to MQTT broker before starting server
     try:
         mqtt_bridge.connect()
