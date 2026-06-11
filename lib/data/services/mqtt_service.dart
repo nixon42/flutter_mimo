@@ -53,12 +53,22 @@ class MQTTService {
         .startClean();
     _client!.connectionMessage = connMessage;
 
-    try {
-      await _client!.connect();
-    } catch (e) {
-      debugPrint('Exception connecting to MQTT broker: $e');
-      _client!.disconnect();
-      return false;
+    bool connected = false;
+    while (!connected) {
+      try {
+        final status = await _client!.connect();
+        if (status?.state == MqttConnectionState.connected) {
+          connected = true;
+        } else {
+          debugPrint('MQTT Client connection failed, status is ${status?.state}. Retrying in 5s...');
+          _client!.disconnect();
+          await Future.delayed(const Duration(seconds: 5));
+        }
+      } catch (e) {
+        debugPrint('Exception connecting to MQTT broker: $e. Retrying in 5s...');
+        _client!.disconnect();
+        await Future.delayed(const Duration(seconds: 5));
+      }
     }
 
     if (_client!.connectionStatus!.state == MqttConnectionState.connected) {
