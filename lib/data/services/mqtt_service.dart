@@ -67,9 +67,12 @@ class MQTTService {
         .withWillTopic('device/$deviceId/status')
         .withWillMessage('{"status": "offline"}')
         .withWillQos(MqttQos.atLeastOnce)
-        .withWillRetain()
-        .startClean();
+        .withWillRetain();
+        
     _client!.connectionMessage = connMessage;
+    // PENTING: Jangan memanggil .startClean() di sini.
+    // Jika tidak clean_session, maka broker MQTT akan menyimpan (queue) 
+    // pesan QoS 1 yang masuk saat Headunit sedang offline.
 
     _client!.onConnected = () {
       debugPrint('MQTT Client connected.');

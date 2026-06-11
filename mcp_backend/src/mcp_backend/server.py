@@ -27,15 +27,9 @@ async def _process_tool_call(tool_name: str, payload: dict) -> str:
         except Exception:
             # Let it try to publish anyway, or fail
             pass
-    # Check if device is connected to MQTT
-    if not mqtt_bridge.is_device_online(DEVICE_ID):
-        import json
-        return json.dumps({
-            "status": "error", 
-            "error_code": "HEADUNIT_DISCONNECTED", 
-            "message": "Headunit sedang tidak terhubung."
-        })
-            
+    # We intentionally do NOT check if the device is online here.
+    # If the device is offline, the MQTT broker will queue the command (QoS 1).
+    # We will wait up to 60 seconds for the device to connect and send an ACK.
     mqtt_bridge.publish_command(DEVICE_ID, tool_name, payload)
     
     # Wait for ack (max 60 seconds per FSD)

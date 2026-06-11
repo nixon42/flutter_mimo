@@ -83,8 +83,8 @@ class MQTTBridge:
             "args": payload
         }
         json_message = json.dumps(message)
-        logger.info(f"Publishing to {topic}: {json_message}")
-        self.client.publish(topic, json_message)
+        logger.info(f"Publishing to {topic} with QoS 1: {json_message}")
+        self.client.publish(topic, json_message, qos=1)
         
     async def wait_for_ack(self, device_id: str, timeout: float = 10.0) -> dict:
         """
