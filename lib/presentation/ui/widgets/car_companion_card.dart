@@ -39,7 +39,7 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
     if (!_formKey.currentState!.validate()) return;
 
     final success = await state.toggleService(
-      deviceId: _deviceIdController.text.trim(),
+      deviceId: 'default_device', // Ignoring UI value as requested
       serverUrl: _serverUrlController.text.trim(),
     );
 
