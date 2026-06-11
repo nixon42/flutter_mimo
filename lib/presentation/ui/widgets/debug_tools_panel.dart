@@ -58,12 +58,12 @@ class DebugToolsPanel extends StatelessWidget {
                 state.triggerTool('open_navigation', {'destination': 'Monas, Jakarta', 'app': 'google_maps'});
               }),
               _buildToolButton('Open Music', () {
-                state.triggerTool('open_music', {'app': 'spotify', 'action': 'play_song', 'query': ''});
+                state.triggerTool('open_music', {'app': 'spotify', 'action': 'play_song', 'query': 'top 50 indonesia'});
               }),
               _buildToolButton('Open App', () {
                 state.triggerTool('open_app', {
-                  'package_name': 'org.mozilla.firefox',
-                  'uri': 'https://www.google.com/search?q=restoran+padang+di+kediri'
+                  'package_name': 'com.google.android.gm',
+                  'uri': ''
                 });
               }),
               _buildToolButton('Phone Call', () {
