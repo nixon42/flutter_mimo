@@ -70,7 +70,7 @@ class DebugToolsPanel extends StatelessWidget {
                 state.triggerTool('phone_call', {'number': '081234567890'});
               }),
               _buildToolButton('Send Message', () {
-                state.triggerTool('send_message', {'app': 'whatsapp', 'contact': '081234567890', 'message': 'Hello from Headunit'});
+                state.triggerTool('send_message', {'app': 'whatsapp', 'contact': '62895366835360', 'message': 'test'});
               }),
               _buildToolButton('Get Status', () {
                 state.triggerTool('get_headunit_status', {});
