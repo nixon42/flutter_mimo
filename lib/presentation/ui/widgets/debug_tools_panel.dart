@@ -61,7 +61,10 @@ class DebugToolsPanel extends StatelessWidget {
                 state.triggerTool('open_music', {'app': 'spotify', 'action': 'play_playlist', 'query': 'Top 50 Indonesia'});
               }),
               _buildToolButton('Open App', () {
-                state.triggerTool('open_app', {'package_name': 'com.whatsapp'});
+                state.triggerTool('open_app', {
+                  'package_name': 'org.mozilla.firefox',
+                  'uri': 'https://www.google.com/search?q=restoran+padang+di+kediri'
+                });
               }),
               _buildToolButton('Phone Call', () {
                 state.triggerTool('phone_call', {'number': '081234567890'});
