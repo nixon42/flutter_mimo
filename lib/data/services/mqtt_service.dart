@@ -43,6 +43,7 @@ class MQTTService {
     _client!.keepAlivePeriod = 60;
     _client!.autoReconnect = true;
     _client!.logging(on: true); // <--- Mengaktifkan log debug internal MQTT
+    _client!.setProtocolV311(); // <--- Paksa gunakan protokol MQTT 3.1.1 (bukan MQIsdp/3.1)
 
     final connMessage = MqttConnectMessage()
         .withClientIdentifier('flutter_mimo_$deviceId')
