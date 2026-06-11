@@ -43,7 +43,21 @@ class MimoTaskHandler extends TaskHandler {
     final intentService = AndroidIntentService();
     _mqttService = MQTTService(intentService: intentService);
     
-    await _mqttService!.connect(_serverUrl!, _deviceId!);
+    // Clean URL for MQTT (remove http://, https://, and paths)
+    String cleanBroker = _serverUrl!;
+    if (cleanBroker.startsWith('http://')) {
+      cleanBroker = cleanBroker.substring(7);
+    } else if (cleanBroker.startsWith('https://')) {
+      cleanBroker = cleanBroker.substring(8);
+    }
+    if (cleanBroker.contains('/')) {
+      cleanBroker = cleanBroker.split('/').first;
+    }
+    if (cleanBroker.contains(':')) {
+      cleanBroker = cleanBroker.split(':').first;
+    }
+
+    await _mqttService!.connect(cleanBroker, _deviceId!);
   }
 
   @override

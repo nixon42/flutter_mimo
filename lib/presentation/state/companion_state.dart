@@ -5,7 +5,7 @@ class CompanionState extends ChangeNotifier {
   final ForegroundServiceManager serviceManager;
 
   String _deviceId = '';
-  String _serverUrl = 'https://mcp-android.xiaozhi.me/api/v1';
+  String _serverUrl = '192.168.99.10';
   bool _isRunning = false;
   bool _autoStart = false;
   bool _isLoading = true;
