@@ -42,6 +42,7 @@ class MQTTService {
     _client!.port = 1883;
     _client!.keepAlivePeriod = 60;
     _client!.autoReconnect = true;
+    _client!.logging(on: true); // <--- Mengaktifkan log debug internal MQTT
 
     final connMessage = MqttConnectMessage()
         .withClientIdentifier('flutter_mimo_$deviceId')
