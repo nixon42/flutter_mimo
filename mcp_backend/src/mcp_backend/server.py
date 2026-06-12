@@ -51,19 +51,19 @@ async def _process_tool_call(tool_name: str, payload: dict) -> str:
 @mcp.tool()
 async def open_navigation(
     destination: str = Field(description="Destinasi tujuan navigasi"),
-    app: Literal["google_maps", "waze", "here"] = Field(default="google_maps", description="Aplikasi navigasi yang digunakan")
+    app: Literal["google_maps"] = Field(default="google_maps", description="Aplikasi navigasi yang digunakan")
 ) -> str:
-    """Buka navigasi ke destinasi menggunakan aplikasi pilihan."""
+    """Buka navigasi ke destinasi di headunit."""
     payload = tools.open_navigation(destination=destination, app=app)
     return await _process_tool_call("open_navigation", payload)
 
 @mcp.tool()
 async def open_music(
-    app: Literal["spotify", "youtube_music", "default"] = Field(description="Aplikasi musik"),
-    action: Literal["play_playlist", "play_song", "play_artist"] = Field(description="Aksi pemutaran"),
+    app: Literal["spotify"] = Field(description="Aplikasi musik"),
+    action: Literal["search"] = Field(description="Aksi pemutaran"),
     query: str = Field(description="Nama lagu, artis, atau playlist")
 ) -> str:
-    """Buka app musik dan mulai pemutaran via deep link / URI scheme."""
+    """Buka app musik dan search di headunit."""
     payload = tools.open_music(app=app, action=action, query=query)
     return await _process_tool_call("open_music", payload)
 
@@ -73,7 +73,7 @@ async def open_app(
     uri: Optional[str] = Field(default=None, description="URI scheme opsional"),
     extra: Optional[dict] = Field(default=None, description="Extra intent data")
 ) -> str:
-    """Generic app launcher berdasarkan package name."""
+    """Generic app launcher berdasarkan package name di headunit."""
     payload = tools.open_app(package_name=package_name, uri=uri, extra=extra)
     return await _process_tool_call("open_app", payload)
 
@@ -82,25 +82,33 @@ async def phone_call(
     number: str = Field(description="Nomor telepon"),
     contact_name: Optional[str] = Field(default=None, description="Nama kontak opsional")
 ) -> str:
-    """Melakukan panggilan telepon."""
+    """Melakukan panggilan telepon di headunit."""
     payload = tools.phone_call(number=number, contact_name=contact_name)
     return await _process_tool_call("phone_call", payload)
 
 @mcp.tool()
 async def send_message(
-    app: Literal["whatsapp", "sms"] = Field(description="Aplikasi pesan"),
+    app: Literal["whatsapp"] = Field(description="Aplikasi pesan"),
     contact: str = Field(description="Nomor atau nama kontak"),
     message: str = Field(description="Isi pesan")
 ) -> str:
-    """Kirim pesan via WhatsApp atau SMS."""
+    """Kirim pesan via WhatsApp di headunit."""
     payload = tools.send_message(app=app, contact=contact, message=message)
     return await _process_tool_call("send_message", payload)
 
 @mcp.tool()
 async def get_headunit_status() -> str:
-    """Cek status koneksi internet headunit, daftar app terinstall, dan versi OS."""
+    """Cek status koneksi internet headunit, dan versi OS."""
     payload = tools.get_headunit_status()
     return await _process_tool_call("get_headunit_status", payload)
+
+@mcp.tool()
+async def search_contact(
+    query: str = Field(description="Nama kontak yang ingin dicari (sebagian nama diperbolehkan)")
+) -> str:
+    """Cari kontak di phonebook headunit untuk mendapatkan nomor telepon."""
+    payload = tools.search_contact(query=query)
+    return await _process_tool_call("search_contact", payload)
 
 mosquitto_process = None
 

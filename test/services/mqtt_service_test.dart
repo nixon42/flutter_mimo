@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_mimo/data/services/mqtt_service.dart';
 import 'package:flutter_mimo/data/services/intent_service.dart';
+import 'package:flutter_mimo/data/services/contact_service.dart';
 import 'dart:convert';
 
 class _MockIntentService implements IntentService {
@@ -19,16 +20,34 @@ class _MockIntentService implements IntentService {
   Future<void> showToast(String message) async {}
 }
 
+class MockContactService implements ContactService {
+  bool shouldSucceed = true;
+  List<Map<String, dynamic>> mockData = [];
+
+  @override
+  Future<List<Map<String, dynamic>>> searchContacts(String query) async {
+    if (!shouldSucceed) {
+      throw Exception('Permission denied');
+    }
+    return mockData;
+  }
+}
+
 void main() {
   group('MQTTService', () {
     late MQTTService mqttService;
     late _MockIntentService mockIntentService;
+    late MockContactService mockContactService;
 
     setUp(() {
       mockIntentService = _MockIntentService();
+      mockContactService = MockContactService();
       // For testing, we won't actually connect to a real broker.
       // We will just test the parsing logic.
-      mqttService = MQTTService(intentService: mockIntentService);
+      mqttService = MQTTService(
+        intentService: mockIntentService,
+        contactService: mockContactService,
+      );
     });
 
     test('parses and handles tool call payload successfully', () async {
@@ -81,6 +100,39 @@ void main() {
       expect(result['data']['connection'], contains('online'));
       expect(result['data'].containsKey('os'), isTrue);
       expect(result['data'].containsKey('os_version'), isTrue);
+    });
+
+    test('handles search_contact successfully', () async {
+      final payload = {
+        'command': 'search_contact',
+        'args': {'query': 'john'}
+      };
+
+      mockContactService.shouldSucceed = true;
+      mockContactService.mockData = [
+        {'name': 'John Doe', 'phones': ['12345']}
+      ];
+
+      final result = await mqttService.handleIncomingCommand(jsonEncode(payload));
+
+      expect(result['status'], 'success');
+      expect(result['data'], isA<List>());
+      expect(result['data'][0]['name'], 'John Doe');
+      expect(result['data'][0]['phones'][0], '12345');
+    });
+
+    test('handles search_contact failure', () async {
+      final payload = {
+        'command': 'search_contact',
+        'args': {'query': 'john'}
+      };
+
+      mockContactService.shouldSucceed = false;
+
+      final result = await mqttService.handleIncomingCommand(jsonEncode(payload));
+
+      expect(result['status'], 'error');
+      expect(result['message'], 'Exception: Permission denied');
     });
 
     test('handles invalid json payload', () async {

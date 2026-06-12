@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'mqtt_service.dart';
 import 'intent_service.dart';
+import 'mqtt_service.dart';
+import 'contact_service.dart';
+import 'package:platform/platform.dart';
 
 abstract class ForegroundServiceManager {
   Future<void> init();
@@ -41,8 +43,12 @@ class MimoTaskHandler extends TaskHandler {
     _serverUrl = prefs.getString('server_url') ?? '192.168.99.10';
 
     // Initialize MQTT and Intent Service
-    final intentService = AndroidIntentService();
-    _mqttService = MQTTService(intentService: intentService);
+    final intentService = AndroidIntentService(platform: const LocalPlatform());
+    final contactService = DeviceContactService();
+    _mqttService = MQTTService(
+      intentService: intentService,
+      contactService: contactService,
+    );
     
     // Clean URL for MQTT (remove http://, https://, and paths)
     String cleanBroker = _serverUrl!;

@@ -44,3 +44,9 @@ def send_message(
 def get_headunit_status() -> dict:
     """Cek status koneksi internet headunit, daftar app terinstall, dan versi OS."""
     return {}
+
+def search_contact(
+    query: str = Field(description="Nama kontak yang ingin dicari, bisa berupa sebagian nama (wildcard)")
+) -> dict:
+    """Cari kontak di phonebook berdasarkan nama. Mengembalikan nama dan daftar nomor telepon."""
+    return {"query": query}

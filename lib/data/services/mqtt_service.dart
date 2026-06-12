@@ -6,12 +6,14 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'intent_service.dart';
+import 'contact_service.dart';
 
 class MQTTService {
   final IntentService intentService;
+  final ContactService contactService;
   MqttServerClient? _client;
 
-  MQTTService({required this.intentService});
+  MQTTService({required this.intentService, required this.contactService});
 
   /// Handles incoming JSON string, executes the intent, and returns the result dictionary
   Future<Map<String, dynamic>> handleIncomingCommand(String payload) async {
@@ -43,6 +45,18 @@ class MQTTService {
               'os_version': Platform.operatingSystemVersion,
             }
           };
+        } else if (command == 'search_contact') {
+          final query = args['query']?.toString() ?? '';
+          try {
+            final contacts = await contactService.searchContacts(query);
+            return {
+              'status': 'success',
+              'message': 'Found ${contacts.length} contacts matching "$query"',
+              'data': contacts
+            };
+          } catch (e) {
+            return {'status': 'error', 'message': e.toString()};
+          }
         }
         return {'status': 'success', 'message': 'Executed $command successfully'};
       } else {
