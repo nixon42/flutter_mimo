@@ -10,6 +10,7 @@ import 'package:platform/platform.dart';
 
 abstract class ForegroundServiceManager {
   Future<void> init();
+  Future<void> requestPermissions();
   Future<bool> start({required String deviceId, required String serverUrl});
   Future<bool> stop();
   Future<bool> isRunning();
@@ -108,10 +109,7 @@ class FlutterForegroundServiceManager implements ForegroundServiceManager {
   }
 
   @override
-  Future<bool> start({required String deviceId, required String serverUrl}) async {
-    // Save settings and enable autoStart
-    await saveSettings(deviceId: deviceId, serverUrl: serverUrl, autoStart: true);
-
+  Future<void> requestPermissions() async {
     // Request notification permission if needed
     final hasPermission = await FlutterForegroundTask.requestNotificationPermission();
     if (hasPermission != NotificationPermission.granted) {
@@ -127,6 +125,19 @@ class FlutterForegroundServiceManager implements ForegroundServiceManager {
     if (await Permission.phone.isDenied) {
       await Permission.phone.request();
     }
+
+    // Request CONTACTS to allow searching contacts
+    if (await Permission.contacts.isDenied) {
+      await Permission.contacts.request();
+    }
+  }
+
+  @override
+  Future<bool> start({required String deviceId, required String serverUrl}) async {
+    // Save settings and enable autoStart
+    await saveSettings(deviceId: deviceId, serverUrl: serverUrl, autoStart: true);
+
+    await requestPermissions();
 
     if (await FlutterForegroundTask.isRunningService) {
       // Service is already running, update it

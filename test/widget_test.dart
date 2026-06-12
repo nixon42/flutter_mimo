@@ -5,6 +5,7 @@ import 'package:flutter_mimo/data/services/foreground_service_manager.dart';
 
 class _MockServiceManager extends ForegroundServiceManager {
   @override Future<void> init() async {}
+  @override Future<void> requestPermissions() async {}
   @override Future<bool> start({required String deviceId, required String serverUrl}) async => true;
   @override Future<bool> stop() async => true;
   @override Future<bool> isRunning() async => false;

@@ -40,6 +40,9 @@ class CompanionState extends ChangeNotifier {
     _isRunning = await serviceManager.isRunning();
     _autoStart = await serviceManager.isAutoStartEnabled();
 
+    // Check and request permissions on every launch
+    await serviceManager.requestPermissions();
+
     if (id != null) _deviceId = id;
     if (url != null) _serverUrl = url;
 

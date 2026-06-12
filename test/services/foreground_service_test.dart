@@ -18,6 +18,9 @@ class MockForegroundServiceManager extends ForegroundServiceManager {
   }
 
   @override
+  Future<void> requestPermissions() async {}
+
+  @override
   Future<bool> start({required String deviceId, required String serverUrl}) async {
     _isRunning = true;
     _deviceId = deviceId;

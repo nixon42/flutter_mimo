@@ -33,6 +33,7 @@ class _MockContactService implements ContactService {
 // Minimal mock to avoid native plugin calls in widget tests
 class _MockServiceManager extends ForegroundServiceManager {
   @override Future<void> init() async {}
+  @override Future<void> requestPermissions() async {}
   @override Future<bool> start({required String deviceId, required String serverUrl}) async => true;
   @override Future<bool> stop() async => true;
   @override Future<bool> isRunning() async => false;
