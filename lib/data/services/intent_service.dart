@@ -134,7 +134,8 @@ class AndroidIntentService implements IntentService {
           result = true;
           break;
         case 'get_headunit_status':
-          // Doesn't open an app
+        case 'search_contact':
+          // Handled externally in MQTTService or ToolDebugState
           result = true;
           break;
       }
