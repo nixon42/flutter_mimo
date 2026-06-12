@@ -3,6 +3,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:provider/provider.dart';
 import 'data/services/foreground_service_manager.dart';
 import 'data/services/intent_service.dart';
+import 'data/services/contact_service.dart';
 import 'presentation/state/companion_state.dart';
 import 'presentation/state/tool_debug_state.dart';
 import 'presentation/ui/screens/dashboard_screen.dart';
@@ -52,7 +53,10 @@ class MyApp extends StatelessWidget {
           create: (_) => CompanionState(serviceManager: serviceManager),
         ),
         ChangeNotifierProvider(
-          create: (_) => ToolDebugState(intentService: intentService),
+          create: (_) => ToolDebugState(
+            intentService: intentService,
+            contactService: DeviceContactService(),
+          ),
         ),
       ],
       child: MaterialApp(

@@ -1,12 +1,14 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/tool_log_entry.dart';
 import '../../data/services/intent_service.dart';
+import '../../data/services/contact_service.dart';
 
 class ToolDebugState extends ChangeNotifier {
   final IntentService intentService;
+  final ContactService contactService;
   final List<ToolLogEntry> _logs = [];
 
-  ToolDebugState({required this.intentService});
+  ToolDebugState({required this.intentService, required this.contactService});
 
   List<ToolLogEntry> get logs => List.unmodifiable(_logs);
 
@@ -25,7 +27,23 @@ class ToolDebugState extends ChangeNotifier {
     await intentService.showToast('Executing tool: $name');
 
     try {
-      final success = await intentService.executeTool(name, params);
+      bool success = false;
+      if (name == 'search_contact') {
+        try {
+          final query = params['query']?.toString() ?? '';
+          final contacts = await contactService.searchContacts(query);
+          success = true;
+          _updateLogStatus(entry.id, ToolLogStatus.success, 'Found ${contacts.length} contacts matching "$query"');
+          return;
+        } catch (e) {
+          success = false;
+          _updateLogStatus(entry.id, ToolLogStatus.error, e.toString());
+          return;
+        }
+      } else {
+        success = await intentService.executeTool(name, params);
+      }
+
       if (success) {
         _updateLogStatus(entry.id, ToolLogStatus.success, 'Successfully executed $name');
       } else {

@@ -8,6 +8,7 @@ import 'package:flutter_mimo/presentation/ui/widgets/car_companion_card.dart';
 import 'package:flutter_mimo/presentation/ui/widgets/debug_tools_panel.dart';
 import 'package:flutter_mimo/data/services/foreground_service_manager.dart';
 import 'package:flutter_mimo/data/services/intent_service.dart';
+import 'package:flutter_mimo/data/services/contact_service.dart';
 import 'package:flutter_mimo/presentation/state/companion_state.dart';
 import 'package:flutter_mimo/presentation/state/tool_debug_state.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,13 @@ class _MockIntentService implements IntentService {
 
   @override
   Future<void> showToast(String message) async {}
+}
+
+class _MockContactService implements ContactService {
+  @override
+  Future<List<Map<String, dynamic>>> searchContacts(String query) async {
+    return [];
+  }
 }
 
 // Minimal mock to avoid native plugin calls in widget tests
@@ -41,7 +49,7 @@ void main() {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CompanionState(serviceManager: _MockServiceManager())),
-        ChangeNotifierProvider(create: (_) => ToolDebugState(intentService: _MockIntentService())),
+        ChangeNotifierProvider(create: (_) => ToolDebugState(intentService: _MockIntentService(), contactService: _MockContactService())),
       ],
       child: const MaterialApp(
         home: DashboardScreen(),

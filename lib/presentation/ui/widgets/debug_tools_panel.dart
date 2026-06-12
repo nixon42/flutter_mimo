@@ -75,6 +75,9 @@ class DebugToolsPanel extends StatelessWidget {
               _buildToolButton('Get Status', () {
                 state.triggerTool('get_headunit_status', {});
               }),
+              _buildToolButton('Search Contact', () {
+                state.triggerTool('search_contact', {'query': 'surya'});
+              }),
             ],
           ),
         ],
