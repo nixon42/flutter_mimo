@@ -66,6 +66,23 @@ void main() {
       expect(result['message'], 'Failed to execute phone_call');
     });
 
+    test('handles get_headunit_status returning system data', () async {
+      final payload = {
+        'command': 'get_headunit_status',
+        'args': {}
+      };
+
+      mockIntentService.shouldSucceed = true;
+
+      final result = await mqttService.handleIncomingCommand(jsonEncode(payload));
+
+      expect(result['status'], 'success');
+      expect(result.containsKey('data'), isTrue);
+      expect(result['data']['connection'], contains('online'));
+      expect(result['data'].containsKey('os'), isTrue);
+      expect(result['data'].containsKey('os_version'), isTrue);
+    });
+
     test('handles invalid json payload', () async {
       final result = await mqttService.handleIncomingCommand("invalid json");
 

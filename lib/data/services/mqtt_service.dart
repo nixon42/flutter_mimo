@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -32,6 +33,17 @@ class MQTTService {
       }
 
       if (success) {
+        if (command == 'get_headunit_status') {
+          return {
+            'status': 'success',
+            'message': 'Executed $command successfully',
+            'data': {
+              'connection': 'online (connected to MQTT)',
+              'os': Platform.operatingSystem,
+              'os_version': Platform.operatingSystemVersion,
+            }
+          };
+        }
         return {'status': 'success', 'message': 'Executed $command successfully'};
       } else {
         return {'status': 'error', 'message': 'Failed to execute $command'};
