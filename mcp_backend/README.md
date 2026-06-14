@@ -29,7 +29,7 @@ uv run -m mcp_backend.server
 
 ## 🔗 Konfigurasi ke MCP Client (Claude / mcp-bridge / XiaoZhi)
 
-Untuk menyambungkan server ini ke LLM, tambahkan konfigurasi berikut ke MCP Client Anda. 
+Untuk menyambungkan server ini ke LLM, tambahkan konfigurasi berikut ke MCP Client Anda.
 
 Jika menggunakan **mcp-bridge** atau **Claude Desktop**, tambahkan di `mcp.json` / `config.json`:
 

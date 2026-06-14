@@ -95,37 +95,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final activeTab = context.select<CompanionState, String>((state) => state.activeTab);
 
     switch (activeTab) {
-      case 'Robot Info':
-        if (isLandscape) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 4,
-                child: _buildStatusCard(isLandscape: true),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 5,
-                child: _buildAxisControlCard(isLandscape: false),
-              ),
-            ],
-          );
-        } else {
-          return Column(
-            children: [
-              _buildStatusCard(isLandscape: false),
-              const SizedBox(height: 12),
-              _buildAxisControlCard(isLandscape: false),
-            ],
-          );
-        }
+      // case 'Robot Info':
+      //   if (isLandscape) {
+      //     return Row(
+      //       crossAxisAlignment: CrossAxisAlignment.start,
+      //       children: [
+      //         Expanded(
+      //           flex: 4,
+      //           child: _buildStatusCard(isLandscape: true),
+      //         ),
+      //         const SizedBox(width: 12),
+      //         Expanded(
+      //           flex: 5,
+      //           child: _buildAxisControlCard(isLandscape: false),
+      //         ),
+      //       ],
+      //     );
+      //   } else {
+      //     return Column(
+      //       children: [
+      //         _buildStatusCard(isLandscape: false),
+      //         const SizedBox(height: 12),
+      //         _buildAxisControlCard(isLandscape: false),
+      //       ],
+      //     );
+      //   }
       case 'Auto Mode':
         return const CarCompanionCard();
-      case 'Sensors':
-        return _buildPlaceholderPanel('Sensors Panel\nComing Soon');
-      case 'Calibration':
-        return _buildPlaceholderPanel('Calibration Panel\nComing Soon');
+      // case 'Sensors':
+      //   return _buildPlaceholderPanel('Sensors Panel\nComing Soon');
+      // case 'Calibration':
+      //   return _buildPlaceholderPanel('Calibration Panel\nComing Soon');
       case 'Debug Tools':
         return const DebugToolsPanel();
       default:
