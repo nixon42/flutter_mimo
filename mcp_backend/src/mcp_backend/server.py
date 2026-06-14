@@ -89,7 +89,7 @@ async def phone_call(
 @mcp.tool()
 async def send_message(
     app: Literal["whatsapp"] = Field(description="Aplikasi pesan"),
-    contact: str = Field(description="Nomor atau nama kontak"),
+    contact: str = Field(description="Nomor telepon"),
     message: str = Field(description="Isi pesan")
 ) -> str:
     """Kirim pesan via WhatsApp di headunit."""

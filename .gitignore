@@ -52,3 +52,9 @@
 /macos/Flutter/flutter_export_environment.sh
 /macos/Runner/GeneratedPluginRegistrant.h
 /macos/Runner/GeneratedPluginRegistrant.m
+# Python Build Artifacts
+*.egg-info/
+__pycache__/
+
+# Scratchpad
+test_dart.dart
