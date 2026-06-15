@@ -52,8 +52,8 @@ void main() {
 
     test('parses and handles tool call payload successfully', () async {
       final payload = {
-        'command': 'open_navigation',
-        'args': {
+        'command_type': 'open_navigation',
+        'parameters': {
           'destination': 'Monas',
           'app': 'google_maps',
         }
@@ -71,8 +71,8 @@ void main() {
 
     test('handles intent execution failure', () async {
       final payload = {
-        'command': 'phone_call',
-        'args': {
+        'command_type': 'phone_call',
+        'parameters': {
           'number': '12345',
         }
       };
@@ -87,8 +87,8 @@ void main() {
 
     test('handles get_headunit_status returning system data', () async {
       final payload = {
-        'command': 'get_headunit_status',
-        'args': {}
+        'command_type': 'get_headunit_status',
+        'parameters': {}
       };
 
       mockIntentService.shouldSucceed = true;
@@ -104,8 +104,8 @@ void main() {
 
     test('handles search_contact successfully', () async {
       final payload = {
-        'command': 'search_contact',
-        'args': {'query': 'john'}
+        'command_type': 'search_contact',
+        'parameters': {'query': 'john'}
       };
 
       mockContactService.shouldSucceed = true;
@@ -123,8 +123,8 @@ void main() {
 
     test('handles search_contact failure', () async {
       final payload = {
-        'command': 'search_contact',
-        'args': {'query': 'john'}
+        'command_type': 'search_contact',
+        'parameters': {'query': 'john'}
       };
 
       mockContactService.shouldSucceed = false;
