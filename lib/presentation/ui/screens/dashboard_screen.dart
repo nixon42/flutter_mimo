@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../state/companion_state.dart';
 import '../../state/tool_debug_state.dart';
 import '../../../data/models/tool_log_entry.dart';
@@ -55,6 +56,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           
           // Add directly to ToolDebugState without re-executing
           context.read<ToolDebugState>().addLogEntry(entry);
+          
+          Fluttertoast.showToast(
+            msg: entry.resultMessage,
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+          );
         }
       } catch (e) {
         debugPrint('Error parsing task data: $e');
