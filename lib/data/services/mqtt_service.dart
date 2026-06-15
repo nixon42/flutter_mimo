@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'intent_service.dart';
 import 'contact_service.dart';
 
@@ -12,6 +13,8 @@ class MQTTService {
   final IntentService intentService;
   final ContactService contactService;
   MqttServerClient? _client;
+  final Set<String> _processedRequestIds = {};
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   MQTTService({required this.intentService, required this.contactService});
 
@@ -26,9 +29,22 @@ class MQTTService {
         return {'status': 'error', 'message': 'Missing command name'};
       }
 
+      final requestId = data['request_id']?.toString() ?? '';
+      if (requestId.isNotEmpty) {
+        if (_processedRequestIds.contains(requestId)) {
+          debugPrint('Duplicate request detected: $requestId. Skipping execution.');
+          return {'status': 'success', 'message': 'Duplicate request ignored.'};
+        }
+        _processedRequestIds.add(requestId);
+        if (_processedRequestIds.length > 50) {
+          _processedRequestIds.remove(_processedRequestIds.first);
+        }
+      }
+
       debugPrint('Executing tool call via MQTT: $command with args $args');
       
-      final success = await intentService.executeTool(command, args);
+      final errorMsg = await intentService.executeTool(command, args);
+      final success = errorMsg == null;
       
       if (kDebugMode) {
         importFlutterForegroundTaskAndSend(command, args, success);
@@ -60,7 +76,7 @@ class MQTTService {
         }
         return {'status': 'success', 'message': 'Executed $command successfully'};
       } else {
-        return {'status': 'error', 'message': 'Failed to execute $command'};
+        return {'status': 'error', 'message': errorMsg};
       }
     } catch (e) {
       debugPrint('Error parsing MQTT payload: $e');
@@ -81,9 +97,20 @@ class MQTTService {
   }
 
   Future<bool> connect(String broker, String deviceId) async {
+    _connectivitySubscription?.cancel();
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+      if (results.contains(ConnectivityResult.none)) {
+        debugPrint('Hardware network dropped (No Internet/Wi-Fi).');
+        FlutterForegroundTask.updateService(
+          notificationTitle: '⚠️ Car Companion Offline',
+          notificationText: 'Tidak ada koneksi. Mohon nyalakan USB Tethering.',
+        );
+      }
+    });
+
     _client = MqttServerClient(broker, 'flutter_mimo_$deviceId');
     _client!.port = 1883;
-    _client!.keepAlivePeriod = 60;
+    _client!.keepAlivePeriod = 60; // Dikembalikan ke 60 (standar stabil)
     _client!.autoReconnect = true;
     _client!.logging(on: true); // <--- Mengaktifkan log debug internal MQTT
     _client!.setProtocolV311(); // <--- Paksa gunakan protokol MQTT 3.1.1 (bukan MQIsdp/3.1)
@@ -122,7 +149,7 @@ class MQTTService {
       debugPrint('MQTT Client disconnected.');
       FlutterForegroundTask.updateService(
         notificationTitle: '⚠️ Car Companion Offline',
-        notificationText: 'Device: $deviceId • Disconnected',
+        notificationText: 'Tidak ada koneksi. Mohon nyalakan USB Tethering.',
       );
     };
 
@@ -190,6 +217,7 @@ class MQTTService {
   }
 
   void disconnect() {
+    _connectivitySubscription?.cancel();
     _client?.disconnect();
   }
 }

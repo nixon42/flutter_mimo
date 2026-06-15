@@ -23,6 +23,9 @@ void main() {
         const MethodChannel('dev.fluttercommunity.plus/android_intent'),
         (MethodCall methodCall) async {
           log.add(methodCall);
+          if (methodCall.method == 'canResolveActivity') {
+            return true;
+          }
           return null; // Return null to indicate success/void
         },
       );
@@ -41,10 +44,13 @@ void main() {
         'package_name': 'com.google.android.gm',
       });
 
-      expect(success, isTrue);
-      expect(log, hasLength(1));
-      expect(log.first.method, 'launch');
-      final Map<dynamic, dynamic> arguments = log.first.arguments;
+      expect(success, isNull);
+      
+      // log should have 2 calls now: canResolveActivity and launch
+      expect(log, hasLength(2));
+      expect(log[0].method, 'canResolveActivity');
+      expect(log[1].method, 'launch');
+      final Map<dynamic, dynamic> arguments = log[1].arguments;
       expect(arguments['action'], 'android.intent.action.MAIN');
       expect(arguments['package'], 'com.google.android.gm');
       expect(arguments['category'], 'android.intent.category.LAUNCHER');
@@ -56,10 +62,10 @@ void main() {
         'uri': 'content://gmail/inbox',
       });
 
-      expect(success, isTrue);
-      expect(log, hasLength(1));
-      expect(log.first.method, 'launch');
-      final Map<dynamic, dynamic> arguments = log.first.arguments;
+      expect(success, isNull);
+      expect(log, hasLength(2));
+      expect(log[1].method, 'launch');
+      final Map<dynamic, dynamic> arguments = log[1].arguments;
       expect(arguments['action'], 'action_view');
       expect(arguments['package'], 'com.google.android.gm');
       expect(arguments['data'], 'content://gmail/inbox');

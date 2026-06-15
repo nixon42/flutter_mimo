@@ -41,7 +41,7 @@ class MimoTaskHandler extends TaskHandler {
     // We need to fetch settings directly from SharedPreferences since we're in an isolate
     final prefs = await SharedPreferences.getInstance();
     _deviceId = prefs.getString('device_id') ?? 'default_device';
-    _serverUrl = prefs.getString('server_url') ?? '192.168.99.10';
+    _serverUrl = prefs.getString('server_url') ?? '192.168.10.7';
 
     // Initialize MQTT and Intent Service
     final intentService = AndroidIntentService(platform: const LocalPlatform());
