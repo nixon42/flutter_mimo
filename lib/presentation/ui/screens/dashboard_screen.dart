@@ -23,16 +23,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    if (kDebugMode) {
-      FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
-    }
+    FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
   }
 
   @override
   void dispose() {
-    if (kDebugMode) {
-      FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);
-    }
+    FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);
     super.dispose();
   }
 
