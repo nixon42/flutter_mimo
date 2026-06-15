@@ -19,7 +19,7 @@ class DebugToolsPanel extends StatelessWidget {
               children: [
                 Expanded(flex: 1, child: _buildTriggers(context)),
                 const SizedBox(width: 12),
-                Expanded(flex: 1, child: _buildLogs(context)),
+                Expanded(flex: 1, child: SizedBox(height: 400, child: _buildLogs(context))),
               ],
             )
           : Column(

@@ -27,27 +27,25 @@ class ToolDebugState extends ChangeNotifier {
     await intentService.showToast('Executing tool: $name');
 
     try {
-      bool success = false;
       if (name == 'search_contact') {
         try {
           final query = params['query']?.toString() ?? '';
           final contacts = await contactService.searchContacts(query);
-          success = true;
-          _updateLogStatus(entry.id, ToolLogStatus.success, 'Found ${contacts.length} contacts matching "$query"');
+          final names = contacts.map((c) => c['name']).join(', ');
+          final msg = contacts.isEmpty ? 'No contacts found for "$query"' : 'Found ${contacts.length}: $names';
+          _updateLogStatus(entry.id, ToolLogStatus.success, msg);
           return;
         } catch (e) {
-          success = false;
           _updateLogStatus(entry.id, ToolLogStatus.error, e.toString());
           return;
         }
       } else {
-        success = await intentService.executeTool(name, params);
-      }
-
-      if (success) {
-        _updateLogStatus(entry.id, ToolLogStatus.success, 'Successfully executed $name');
-      } else {
-        _updateLogStatus(entry.id, ToolLogStatus.error, 'Failed to execute $name');
+        final errorMsg = await intentService.executeTool(name, params);
+        if (errorMsg == null) {
+          _updateLogStatus(entry.id, ToolLogStatus.success, 'Successfully executed $name');
+        } else {
+          _updateLogStatus(entry.id, ToolLogStatus.error, errorMsg);
+        }
       }
     } catch (e) {
       _updateLogStatus(entry.id, ToolLogStatus.error, e.toString());

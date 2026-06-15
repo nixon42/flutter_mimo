@@ -5,7 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:platform/platform.dart';
 
 abstract class IntentService {
-  Future<bool> executeTool(String toolName, Map<String, dynamic> parameters);
+  Future<String?> executeTool(String toolName, Map<String, dynamic> parameters);
   Future<void> showToast(String message);
 }
 
@@ -24,9 +24,8 @@ class AndroidIntentService implements IntentService {
   }
 
   @override
-  Future<bool> executeTool(String toolName, Map<String, dynamic> parameters) async {
+  Future<String?> executeTool(String toolName, Map<String, dynamic> parameters) async {
     try {
-      bool result = false;
       switch (toolName) {
         case 'open_navigation':
           final dest = parameters['destination']?.toString() ?? '';
@@ -36,8 +35,10 @@ class AndroidIntentService implements IntentService {
             flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
             platform: _platform,
           );
+          if (await intent.canResolveActivity() != true) {
+            return "Aplikasi navigasi (Google Maps) belum terinstall di headunit.";
+          }
           await intent.launch();
-          result = true;
           break;
         case 'open_music':
           final query = parameters['query']?.toString() ?? '';
@@ -48,28 +49,31 @@ class AndroidIntentService implements IntentService {
             targetPackage = 'com.google.android.apps.youtube.music';
           }
           
+          AndroidIntent intent;
           if (query.isEmpty) {
             // Jika kosong (minta play terakhir), cukup buka aplikasinya saja
-            final intent = AndroidIntent(
+            intent = AndroidIntent(
               action: 'android.intent.action.MAIN',
               category: 'android.intent.category.LAUNCHER',
               package: targetPackage,
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
               platform: _platform,
             );
-            await intent.launch();
           } else {
             // Gunakan intent bawaan Android untuk "Play from Search" (bisa auto-play)
-            final intent = AndroidIntent(
+            intent = AndroidIntent(
               action: 'android.media.action.MEDIA_PLAY_FROM_SEARCH',
               package: targetPackage,
               arguments: {'query': query},
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
               platform: _platform,
             );
-            await intent.launch();
           }
-          result = true;
+          
+          if (await intent.canResolveActivity() != true) {
+            return "Aplikasi $appName belum terinstall di headunit.";
+          }
+          await intent.launch();
           break;
         case 'open_app':
           final packageName = parameters['package_name']?.toString() ?? '';
@@ -84,8 +88,10 @@ class AndroidIntentService implements IntentService {
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
               platform: _platform,
             );
+            if (await intent.canResolveActivity() != true) {
+              return "Aplikasi belum terinstall di headunit kamu.";
+            }
             await intent.launch();
-            result = true;
           }
           break;
         case 'phone_call':
@@ -97,6 +103,9 @@ class AndroidIntentService implements IntentService {
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
               platform: _platform,
             );
+            if (await intent.canResolveActivity() != true) {
+              return "Aplikasi telepon belum terinstall di headunit kamu.";
+            }
             await intent.launch();
           } else {
             // Fallback ke dialer biasa jika user belum memberikan izin
@@ -106,9 +115,11 @@ class AndroidIntentService implements IntentService {
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
               platform: _platform,
             );
+            if (await intent.canResolveActivity() != true) {
+              return "Aplikasi telepon belum terinstall di headunit kamu.";
+            }
             await intent.launch();
           }
-          result = true;
           break;
         case 'send_message':
           final contact = parameters['contact']?.toString() ?? '';
@@ -121,6 +132,9 @@ class AndroidIntentService implements IntentService {
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
               platform: _platform,
             );
+            if (await intent.canResolveActivity() != true) {
+              return "Aplikasi WhatsApp belum terinstall di headunit kamu.";
+            }
             await intent.launch();
           } else {
             final intent = AndroidIntent(
@@ -129,19 +143,22 @@ class AndroidIntentService implements IntentService {
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
               platform: _platform,
             );
+            if (await intent.canResolveActivity() != true) {
+              return "Aplikasi SMS belum terinstall di headunit kamu.";
+            }
             await intent.launch();
           }
-          result = true;
           break;
         case 'get_headunit_status':
         case 'search_contact':
           // Handled externally in MQTTService or ToolDebugState
-          result = true;
           break;
+        default:
+          return "Perintah tidak dikenali oleh headunit.";
       }
-      return result;
+      return null;
     } catch (e) {
-      return false;
+      return "Gagal mengeksekusi $toolName: $e";
     }
   }
 }

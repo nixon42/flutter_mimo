@@ -50,7 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             toolName: tool,
             parameters: args,
             status: success ? ToolLogStatus.success : ToolLogStatus.error,
-            resultMessage: success ? 'Successfully executed $tool' : 'Failed to execute $tool',
+            resultMessage: map['message'] ?? (success ? 'Successfully executed $tool' : 'Failed to execute $tool'),
           );
           
           // Add directly to ToolDebugState without re-executing
@@ -172,14 +172,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _buildTopTab(context, 'Robot Info'),
-                const SizedBox(width: 8),
+                // _buildTopTab(context, 'Robot Info'),
+                // const SizedBox(width: 8),
                 _buildTopTab(context, 'Auto Mode'),
                 const SizedBox(width: 8),
-                _buildTopTab(context, 'Sensors'),
-                const SizedBox(width: 8),
-                _buildTopTab(context, 'Calibration'),
-                const SizedBox(width: 8),
+                // _buildTopTab(context, 'Sensors'),
+                // const SizedBox(width: 8),
+                // _buildTopTab(context, 'Calibration'),
+                // const SizedBox(width: 8),
                 _buildTopTab(context, 'Debug Tools'),
               ],
             ),

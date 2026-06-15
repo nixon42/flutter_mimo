@@ -5,11 +5,11 @@ class CompanionState extends ChangeNotifier {
   final ForegroundServiceManager serviceManager;
 
   String _deviceId = '';
-  String _serverUrl = '192.168.99.10';
+  String _serverUrl = '192.168.10.7';
   bool _isRunning = false;
   bool _autoStart = false;
   bool _isLoading = true;
-  String _activeTab = 'Robot Info';
+  String _activeTab = 'Auto Mode';
   String? _error;
 
   CompanionState({required this.serviceManager}) {
