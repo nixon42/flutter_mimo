@@ -58,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           context.read<ToolDebugState>().addLogEntry(entry);
           
           Fluttertoast.showToast(
-            msg: entry.resultMessage,
+            msg: entry.resultMessage ?? '',
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
           );
