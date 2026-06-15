@@ -46,9 +46,7 @@ class MQTTService {
       final errorMsg = await intentService.executeTool(command, args);
       final success = errorMsg == null;
       
-      if (kDebugMode) {
-        importFlutterForegroundTaskAndSend(command, args, success);
-      }
+      importFlutterForegroundTaskAndSend(command, args, success);
 
       if (success) {
         if (command == 'get_headunit_status') {
