@@ -21,10 +21,12 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = context.read<CompanionState>();
-      _deviceIdController.text = state.deviceId;
+      _deviceIdController.text = state.deviceId.isNotEmpty 
+          ? state.deviceId 
+          : 'default_device';
       _serverUrlController.text = state.serverUrl.isNotEmpty 
           ? state.serverUrl 
-          : '192.168.99.10';
+          : '192.168.10.7';
     });
   }
 
@@ -36,10 +38,14 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
   }
 
   Future<void> _toggleService(CompanionState state) async {
-    if (!_formKey.currentState!.validate()) return;
+    // Only validate form if we are starting the service. 
+    // If stopping, skip validation to prevent deadlock when fields are empty & disabled.
+    if (!state.isRunning) {
+      if (!_formKey.currentState!.validate()) return;
+    }
 
     final success = await state.toggleService(
-      deviceId: 'default_device', // Ignoring UI value as requested
+      deviceId: _deviceIdController.text.trim().isEmpty ? 'default_device' : _deviceIdController.text.trim(),
       serverUrl: _serverUrlController.text.trim(),
     );
 
@@ -163,7 +169,7 @@ class _CarCompanionCardState extends State<CarCompanionCard> {
               decoration: const InputDecoration(
                 labelText: 'MQTT Broker (IP / Domain)',
                 labelStyle: TextStyle(color: Colors.white70, fontSize: 13),
-                hintText: 'e.g. 192.168.99.10',
+                hintText: 'e.g. 192.168.10.7',
                 prefixIcon: Icon(Icons.cloud_queue, color: Colors.white54, size: 20),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF3B3C42)),

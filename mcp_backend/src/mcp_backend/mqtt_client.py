@@ -77,8 +77,10 @@ class MQTTBridge:
 
     def publish_command(self, device_id: str, tool_name: str, payload: dict):
         """Publishes a command to the target device's command topic."""
+        import uuid
         topic = f"device/{device_id}/command"
         message = {
+            "request_id": uuid.uuid4().hex,
             "command": tool_name,
             "args": payload
         }
@@ -102,8 +104,8 @@ class MQTTBridge:
         except asyncio.TimeoutError:
             logger.warning(f"Timeout waiting for ack from device {device_id}")
             return {
-                "status": "queued",
-                "message": "Headunit tidak merespons dalam waktu 10 detik (koneksi mungkin tidak stabil). Perintah tetap berada di antrean dan otomatis dieksekusi saat stabil."
+                "status": "error",
+                "message": "error no internet. Headunit sedang offline. Beritahu pengguna bahwa perintah mereka telah masuk antrean secara otomatis. Mereka hanya perlu menyalakan USB Tethering di headunit dan perintah akan langsung tereksekusi tanpa perlu diulangi."
             }
         finally:
             if device_id in self.pending_acks:

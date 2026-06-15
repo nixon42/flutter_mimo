@@ -8,9 +8,15 @@ import 'package:flutter_mimo/data/services/intent_service.dart';
 import 'package:flutter_mimo/data/services/contact_service.dart';
 
 class _MockIntentService implements IntentService {
+  String? lastToolName;
+  Map<String, dynamic>? lastParameters;
+  bool shouldSucceed = true;
+
   @override
-  Future<bool> executeTool(String toolName, Map<String, dynamic> parameters) async {
-    return true; // Simulate success
+  Future<String?> executeTool(String toolName, Map<String, dynamic> parameters) async {
+    lastToolName = toolName;
+    lastParameters = parameters;
+    return shouldSucceed ? null : "Failed to execute $toolName";
   }
 
   @override

@@ -10,10 +10,10 @@ class _MockIntentService implements IntentService {
   bool shouldSucceed = true;
 
   @override
-  Future<bool> executeTool(String toolName, Map<String, dynamic> parameters) async {
+  Future<String?> executeTool(String toolName, Map<String, dynamic> parameters) async {
     lastToolName = toolName;
     lastParameters = parameters;
-    return shouldSucceed;
+    return shouldSucceed ? null : "Failed to execute $toolName";
   }
 
   @override
