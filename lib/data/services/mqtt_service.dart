@@ -22,8 +22,8 @@ class MQTTService {
   Future<Map<String, dynamic>> handleIncomingCommand(String payload) async {
     try {
       final data = jsonDecode(payload);
-      final command = data['command']?.toString() ?? '';
-      final args = data['args'] as Map<String, dynamic>? ?? {};
+      final command = data['command_type']?.toString() ?? '';
+      final args = data['parameters'] as Map<String, dynamic>? ?? {};
 
       if (command.isEmpty) {
         return {'status': 'error', 'message': 'Missing command name'};
@@ -36,7 +36,7 @@ class MQTTService {
           return {'status': 'success', 'message': 'Duplicate request ignored.'};
         }
         _processedRequestIds.add(requestId);
-        if (_processedRequestIds.length > 50) {
+        if (_processedRequestIds.length > 100) {
           _processedRequestIds.remove(_processedRequestIds.first);
         }
       }
@@ -46,9 +46,7 @@ class MQTTService {
       final errorMsg = await intentService.executeTool(command, args);
       final success = errorMsg == null;
       
-      if (kDebugMode) {
-        importFlutterForegroundTaskAndSend(command, args, success);
-      }
+      importFlutterForegroundTaskAndSend(command, args, success);
 
       if (success) {
         if (command == 'get_headunit_status') {
@@ -108,7 +106,7 @@ class MQTTService {
       }
     });
 
-    _client = MqttServerClient(broker, 'flutter_mimo_$deviceId');
+    _client = MqttServerClient(broker, 'headunit-$deviceId');
     _client!.port = 1883;
     _client!.keepAlivePeriod = 60; // Dikembalikan ke 60 (standar stabil)
     _client!.autoReconnect = true;
@@ -116,9 +114,9 @@ class MQTTService {
     _client!.setProtocolV311(); // <--- Paksa gunakan protokol MQTT 3.1.1 (bukan MQIsdp/3.1)
 
     final connMessage = MqttConnectMessage()
-        .withClientIdentifier('flutter_mimo_$deviceId')
-        .withWillTopic('device/$deviceId/status')
-        .withWillMessage('{"status": "offline"}')
+        .withClientIdentifier('headunit-$deviceId')
+        .withWillTopic('car/$deviceId/lwt')
+        .withWillMessage('{"status": "offline", "timestamp": "${DateTime.now().toIso8601String()}"}')
         .withWillQos(MqttQos.atLeastOnce)
         .withWillRetain();
         
@@ -178,7 +176,7 @@ class MQTTService {
         final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
         final payload = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
-        final commandTopic = 'device/$deviceId/command';
+        final commandTopic = 'car/$deviceId/cmd';
         if (c[0].topic == commandTopic) {
           final ackPayload = await handleIncomingCommand(payload);
           _publishAck(deviceId, ackPayload);
@@ -198,11 +196,11 @@ class MQTTService {
     
     // Publish online status
     final builder = MqttClientPayloadBuilder();
-    builder.addString('{"status": "online"}');
-    _client!.publishMessage('device/$deviceId/status', MqttQos.atLeastOnce, builder.payload!, retain: true);
+    builder.addString('{"status": "online", "os_version": "${Platform.operatingSystemVersion}", "timestamp": "${DateTime.now().toIso8601String()}"}');
+    _client!.publishMessage('car/$deviceId/status', MqttQos.atLeastOnce, builder.payload!, retain: true);
 
     // Subscribe to command topic
-    _client!.subscribe('device/$deviceId/command', MqttQos.atLeastOnce);
+    _client!.subscribe('car/$deviceId/cmd', MqttQos.atLeastOnce);
   }
 
   void _publishAck(String deviceId, Map<String, dynamic> payload) {
@@ -211,7 +209,7 @@ class MQTTService {
     final builder = MqttClientPayloadBuilder();
     builder.addString(jsonEncode(payload));
     
-    final ackTopic = 'device/$deviceId/ack';
+    final ackTopic = 'car/$deviceId/ack';
     debugPrint('Publishing ACK to $ackTopic: $payload');
     _client!.publishMessage(ackTopic, MqttQos.atLeastOnce, builder.payload!);
   }

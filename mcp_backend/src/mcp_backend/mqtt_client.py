@@ -39,8 +39,9 @@ class MQTTBridge:
         
     def _on_connect(self, client, userdata, flags, rc, properties=None):
         logger.info(f"Connected to MQTT broker with result code {rc}")
-        self.client.subscribe("device/+/ack")
-        self.client.subscribe("device/+/status")
+        self.client.subscribe("car/+/ack")
+        self.client.subscribe("car/+/status")
+        self.client.subscribe("car/+/lwt")
         
     def _on_message(self, client, userdata, msg):
         topic = msg.topic
@@ -49,7 +50,7 @@ class MQTTBridge:
             logger.debug(f"Received message on {topic}: {payload}")
             
             parts = topic.split('/')
-            if len(parts) >= 3 and parts[0] == "device":
+            if len(parts) >= 3 and parts[0] == "car":
                 device_id = parts[1]
                 msg_type = parts[2]
                 
@@ -65,6 +66,9 @@ class MQTTBridge:
                     status = payload.get("status", "offline")
                     self.device_status[device_id] = status
                     logger.info(f"Device {device_id} is now {status}")
+                elif msg_type == "lwt":
+                    self.device_status[device_id] = "offline"
+                    logger.info(f"Device {device_id} LWT received, marked offline")
                         
         except json.JSONDecodeError:
             logger.error(f"Failed to decode MQTT message from {topic}")
@@ -77,12 +81,11 @@ class MQTTBridge:
 
     def publish_command(self, device_id: str, tool_name: str, payload: dict):
         """Publishes a command to the target device's command topic."""
-        import uuid
-        topic = f"device/{device_id}/command"
+        topic = f"car/{device_id}/cmd"
         message = {
             "request_id": uuid.uuid4().hex,
-            "command": tool_name,
-            "args": payload
+            "command_type": tool_name,
+            "parameters": payload
         }
         json_message = json.dumps(message)
         logger.info(f"Publishing to {topic} with QoS 1: {json_message}")
