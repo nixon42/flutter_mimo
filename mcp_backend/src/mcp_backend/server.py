@@ -84,6 +84,14 @@ async def play_local_media(
     return await _process_tool_call("play_local_media", payload)
 
 @mcp.tool()
+async def search_local_media(
+    keywords: list[str] = Field(description="Daftar kata kunci pencarian yang sudah dipotong per kata, contoh: ['linkin', 'park']")
+) -> str:
+    """Cari file musik/media lokal di penyimpanan headunit dan kembalikan daftar file yang cocok beserta URI-nya."""
+    payload = tools.search_local_media(keywords=keywords)
+    return await _process_tool_call("search_local_media", payload)
+
+@mcp.tool()
 async def open_app(
     package_name: str = Field(description="Package name aplikasi Android"),
     uri: Optional[str] = Field(default=None, description="URI scheme opsional"),

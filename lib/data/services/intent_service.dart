@@ -7,6 +7,7 @@ import 'package:platform/platform.dart';
 
 abstract class IntentService {
   Future<String?> executeTool(String toolName, Map<String, dynamic> parameters);
+  Future<List<Map<String, dynamic>>> searchLocalMedia(List<String> keywords);
   Future<void> showToast(String message);
 }
 
@@ -251,6 +252,7 @@ class AndroidIntentService implements IntentService {
           break;
         case 'get_headunit_status':
         case 'search_contact':
+        case 'search_local_media':
           // Handled externally in MQTTService or ToolDebugState
           break;
         default:
@@ -260,5 +262,59 @@ class AndroidIntentService implements IntentService {
     } catch (e) {
       return "Gagal mengeksekusi $toolName: $e";
     }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> searchLocalMedia(List<String> keywords) async {
+    final OnAudioQuery audioQuery = OnAudioQuery();
+    bool hasPermission = await audioQuery.permissionsStatus();
+    if (!hasPermission) {
+      hasPermission = await audioQuery.permissionsRequest();
+      if (!hasPermission) throw Exception("Izin akses penyimpanan ditolak.");
+    }
+
+    List<SongModel> songs = await audioQuery.querySongs(
+      sortType: null,
+      orderType: OrderType.ASC_OR_SMALLER,
+      uriType: UriType.EXTERNAL,
+      ignoreCase: true,
+    );
+
+    int calculateScore(String target, List<String> words) {
+      target = target.toLowerCase();
+      int score = 0;
+      for (var word in words) {
+        if (target.contains(word)) {
+          score += 10;
+        } else if (word.length > 3 && target.contains(word.substring(0, word.length - 1))) {
+          score += 5;
+        } else if (word.length > 3 && target.contains(word.substring(1))) {
+          score += 5;
+        }
+      }
+      return score;
+    }
+
+    List<Map<String, dynamic>> results = [];
+    for (var s in songs) {
+      if (s.isMusic == false) continue;
+      
+      int titleScore = calculateScore(s.title, keywords);
+      int artistScore = s.artist != null ? calculateScore(s.artist!, keywords) : 0;
+      int totalScore = titleScore + artistScore;
+      
+      if (totalScore > 0) {
+        results.add({
+          'title': s.title,
+          'artist': s.artist ?? 'Unknown',
+          'album': s.album ?? 'Unknown',
+          'uri': s.uri,
+          'score': totalScore,
+        });
+      }
+    }
+
+    results.sort((a, b) => (b['score'] as int).compareTo(a['score'] as int));
+    return results.take(10).toList();
   }
 }
