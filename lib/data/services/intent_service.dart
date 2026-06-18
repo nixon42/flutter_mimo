@@ -1,6 +1,7 @@
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:platform/platform.dart';
 
@@ -102,6 +103,49 @@ class AndroidIntentService implements IntentService {
             return "Aplikasi YouTube belum terinstall di headunit.";
           }
           await intent.launch();
+          break;
+        case 'play_local_media':
+          final query = parameters['query']?.toString().toLowerCase() ?? '';
+          if (query.isEmpty) return "Kata kunci pencarian media tidak boleh kosong.";
+
+          final OnAudioQuery audioQuery = OnAudioQuery();
+          bool hasPermission = await audioQuery.permissionsStatus();
+          if (!hasPermission) {
+            hasPermission = await audioQuery.permissionsRequest();
+            if (!hasPermission) return "Izin akses penyimpanan ditolak.";
+          }
+
+          List<SongModel> songs = await audioQuery.querySongs(
+            sortType: null,
+            orderType: OrderType.ASC_OR_SMALLER,
+            uriType: UriType.EXTERNAL,
+            ignoreCase: true,
+          );
+
+          final matches = songs.where((s) {
+            final titleMatch = s.title.toLowerCase().contains(query);
+            final artistMatch = s.artist?.toLowerCase().contains(query) ?? false;
+            return titleMatch || artistMatch;
+          }).toList();
+
+          if (matches.isEmpty) {
+            return "File media dengan kata kunci '$query' tidak ditemukan di penyimpanan headunit.";
+          }
+
+          final bestMatch = matches.first;
+          final intent = AndroidIntent(
+            action: 'action_view',
+            data: bestMatch.uri,
+            type: 'audio/*',
+            flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+            platform: _platform,
+          );
+          
+          if (await intent.canResolveActivity() != true) {
+            return "Tidak ada pemutar musik bawaan untuk memutar file ini.";
+          }
+          await intent.launch();
+          await showToast("Memutar: ${bestMatch.title} - ${bestMatch.artist ?? 'Unknown'}");
           break;
         case 'open_app':
           final packageName = parameters['package_name']?.toString() ?? '';
