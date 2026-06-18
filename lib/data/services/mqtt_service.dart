@@ -71,6 +71,22 @@ class MQTTService {
           } catch (e) {
             return {'status': 'error', 'message': e.toString()};
           }
+        } else if (command == 'search_local_media') {
+          final keywordsRaw = args['keywords'];
+          final keywords = (keywordsRaw as List<dynamic>?)?.map((e) => e.toString().toLowerCase()).toList() ?? [];
+          if (keywords.isEmpty) {
+            return {'status': 'error', 'message': 'Kata kunci pencarian kosong.'};
+          }
+          try {
+            final results = await intentService.searchLocalMedia(keywords);
+            return {
+              'status': 'success',
+              'message': 'Found ${results.length} local media files',
+              'data': results
+            };
+          } catch (e) {
+            return {'status': 'error', 'message': e.toString()};
+          }
         }
         return {'status': 'success', 'message': 'Executed $command successfully'};
       } else {

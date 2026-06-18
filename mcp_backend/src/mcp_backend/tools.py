@@ -30,6 +30,12 @@ def play_local_media(
     """Putar file musik atau video lokal yang ada di memori headunit."""
     return {"query": query}
 
+def search_local_media(
+    keywords: list[str] = Field(description="Daftar kata kunci pencarian yang sudah dipotong per kata, contoh: ['linkin', 'park']")
+) -> dict:
+    """Cari file musik/media lokal di penyimpanan headunit dan kembalikan daftar file yang cocok."""
+    return {"keywords": keywords}
+
 def open_app(
     package_name: str = Field(description="Package name aplikasi Android"),
     uri: Optional[str] = Field(default=None, description="URI scheme opsional"),
