@@ -146,7 +146,8 @@ class AndroidIntentService implements IntentService {
           int highestScore = 0;
 
           for (var s in songs) {
-            // Kita hapus filter s.isMusic == false agar file mp4 / non-standard music tetap terbaca
+            // Kita abaikan file sistem seperti ringtone/alarm/notifikasi agar murni file media (audio/video)
+            if (s.isAlarm == true || s.isNotification == true || s.isRingtone == true) continue;
             
             int titleScore = calculateScore(s.title, query);
             int artistScore = s.artist != null ? calculateScore(s.artist!, query) : 0;
@@ -297,7 +298,8 @@ class AndroidIntentService implements IntentService {
 
     List<Map<String, dynamic>> results = [];
     for (var s in songs) {
-      // Kita hapus filter s.isMusic == false agar file mp4 / non-standard music tetap terbaca
+      // Kita abaikan file sistem seperti ringtone/alarm/notifikasi agar murni file media (audio/video)
+      if (s.isAlarm == true || s.isNotification == true || s.isRingtone == true) continue;
       
       int titleScore = calculateScore(s.title, keywords);
       int artistScore = s.artist != null ? calculateScore(s.artist!, keywords) : 0;
