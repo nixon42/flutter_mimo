@@ -11,7 +11,7 @@ def open_navigation(
     return {"destination": destination, "app": app}
 
 def open_music(
-    app: Literal["spotify", "youtube_music", "default"] = Field(description="Aplikasi musik"),
+    app: Literal["spotify", "youtube_music", "youtube", "default"] = Field(description="Aplikasi musik"),
     action: Literal["play_playlist", "play_song", "play_artist"] = Field(description="Aksi pemutaran"),
     query: str = Field(description="Nama lagu, artis, atau playlist")
 ) -> dict:
