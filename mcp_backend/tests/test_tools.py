@@ -16,6 +16,11 @@ def test_tool_open_music_exists():
     assert "action" in sig.parameters
     assert "query" in sig.parameters
 
+def test_tool_open_youtube_exists():
+    assert hasattr(tools, "open_youtube")
+    sig = inspect.signature(tools.open_youtube)
+    assert "query" in sig.parameters
+
 def test_tool_open_app_exists():
     assert hasattr(tools, "open_app")
     sig = inspect.signature(tools.open_app)

@@ -59,13 +59,21 @@ async def open_navigation(
 
 @mcp.tool()
 async def open_music(
-    app: Literal["spotify", "youtube_music", "youtube"] = Field(description="Aplikasi musik (spotify, youtube_music, atau youtube)"),
+    app: Literal["spotify", "youtube_music"] = Field(description="Aplikasi musik (spotify atau youtube_music)"),
     action: Literal["search"] = Field(description="Aksi pemutaran"),
     query: str = Field(description="Nama lagu, artis, atau playlist")
 ) -> str:
     """Buka app musik dan search di headunit."""
     payload = tools.open_music(app=app, action=action, query=query)
     return await _process_tool_call("open_music", payload)
+
+@mcp.tool()
+async def open_youtube(
+    query: str = Field(description="Kata kunci pencarian video")
+) -> str:
+    """Buka aplikasi YouTube dan cari video di headunit."""
+    payload = tools.open_youtube(query=query)
+    return await _process_tool_call("open_youtube", payload)
 
 @mcp.tool()
 async def open_app(

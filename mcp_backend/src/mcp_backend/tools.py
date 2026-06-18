@@ -11,12 +11,18 @@ def open_navigation(
     return {"destination": destination, "app": app}
 
 def open_music(
-    app: Literal["spotify", "youtube_music", "youtube", "default"] = Field(description="Aplikasi musik"),
+    app: Literal["spotify", "youtube_music", "default"] = Field(description="Aplikasi musik"),
     action: Literal["play_playlist", "play_song", "play_artist"] = Field(description="Aksi pemutaran"),
     query: str = Field(description="Nama lagu, artis, atau playlist")
 ) -> dict:
     """Buka app musik dan mulai pemutaran via deep link / URI scheme."""
     return {"app": app, "action": action, "query": query}
+
+def open_youtube(
+    query: str = Field(description="Kata kunci pencarian video")
+) -> dict:
+    """Buka aplikasi YouTube dan cari video."""
+    return {"query": query}
 
 def open_app(
     package_name: str = Field(description="Package name aplikasi Android"),

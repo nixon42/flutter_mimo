@@ -72,9 +72,8 @@ void main() {
       expect(arguments['category'], isNull);
     });
 
-    test('open_music with app=youtube launches com.google.android.youtube', () async {
-      final success = await service.executeTool('open_music', {
-        'app': 'youtube',
+    test('open_youtube launches com.google.android.youtube', () async {
+      final success = await service.executeTool('open_youtube', {
         'query': 'taylor swift',
       });
 

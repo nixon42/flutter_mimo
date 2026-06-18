@@ -47,8 +47,6 @@ class AndroidIntentService implements IntentService {
           String targetPackage = 'com.spotify.music';
           if (appName == 'youtube_music') {
             targetPackage = 'com.google.android.apps.youtube.music';
-          } else if (appName == 'youtube') {
-            targetPackage = 'com.google.android.youtube';
           }
           
           AndroidIntent intent;
@@ -74,6 +72,34 @@ class AndroidIntentService implements IntentService {
           
           if (await intent.canResolveActivity() != true) {
             return "Aplikasi $appName belum terinstall di headunit.";
+          }
+          await intent.launch();
+          break;
+        case 'open_youtube':
+          final query = parameters['query']?.toString() ?? '';
+          final targetPackage = 'com.google.android.youtube';
+          
+          AndroidIntent intent;
+          if (query.isEmpty) {
+            intent = AndroidIntent(
+              action: 'android.intent.action.MAIN',
+              category: 'android.intent.category.LAUNCHER',
+              package: targetPackage,
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK],
+              platform: _platform,
+            );
+          } else {
+            intent = AndroidIntent(
+              action: 'android.media.action.MEDIA_PLAY_FROM_SEARCH',
+              package: targetPackage,
+              arguments: {'query': query},
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+              platform: _platform,
+            );
+          }
+          
+          if (await intent.canResolveActivity() != true) {
+            return "Aplikasi YouTube belum terinstall di headunit.";
           }
           await intent.launch();
           break;
