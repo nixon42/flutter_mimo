@@ -122,17 +122,45 @@ class AndroidIntentService implements IntentService {
             ignoreCase: true,
           );
 
-          final matches = songs.where((s) {
-            final titleMatch = s.title.toLowerCase().contains(query);
-            final artistMatch = s.artist?.toLowerCase().contains(query) ?? false;
-            return titleMatch || artistMatch;
-          }).toList();
+          int calculateScore(String target, String q) {
+            target = target.toLowerCase();
+            q = q.toLowerCase();
+            if (target.contains(q)) return 1000;
+            
+            int score = 0;
+            final words = q.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+            for (var word in words) {
+              if (target.contains(word)) {
+                score += 10;
+              } else if (word.length > 3 && target.contains(word.substring(0, word.length - 1))) {
+                score += 5; // typo di akhir kata (contoh: linking -> linkin)
+              } else if (word.length > 3 && target.contains(word.substring(1))) {
+                score += 5; // typo di awal kata
+              }
+            }
+            return score;
+          }
 
-          if (matches.isEmpty) {
+          SongModel? bestMatch;
+          int highestScore = 0;
+
+          for (var s in songs) {
+            if (s.isMusic == false) continue; // Skip file sistem/notifikasi jika flag isMusic tersedia dan false
+            
+            int titleScore = calculateScore(s.title, query);
+            int artistScore = s.artist != null ? calculateScore(s.artist!, query) : 0;
+            int totalScore = titleScore + artistScore;
+            
+            if (totalScore > highestScore) {
+              highestScore = totalScore;
+              bestMatch = s;
+            }
+          }
+
+          if (bestMatch == null || highestScore == 0) {
             return "File media dengan kata kunci '$query' tidak ditemukan di penyimpanan headunit.";
           }
 
-          final bestMatch = matches.first;
           final intent = AndroidIntent(
             action: 'action_view',
             data: bestMatch.uri,
