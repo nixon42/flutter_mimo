@@ -47,6 +47,8 @@ class AndroidIntentService implements IntentService {
           String targetPackage = 'com.spotify.music';
           if (appName == 'youtube_music') {
             targetPackage = 'com.google.android.apps.youtube.music';
+          } else if (appName == 'youtube') {
+            targetPackage = 'com.google.android.youtube';
           }
           
           AndroidIntent intent;

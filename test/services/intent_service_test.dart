@@ -71,5 +71,20 @@ void main() {
       expect(arguments['data'], 'content://gmail/inbox');
       expect(arguments['category'], isNull);
     });
+
+    test('open_music with app=youtube launches com.google.android.youtube', () async {
+      final success = await service.executeTool('open_music', {
+        'app': 'youtube',
+        'query': 'taylor swift',
+      });
+
+      expect(success, isNull);
+      expect(log, hasLength(2));
+      expect(log[1].method, 'launch');
+      final Map<dynamic, dynamic> arguments = log[1].arguments;
+      expect(arguments['action'], 'android.media.action.MEDIA_PLAY_FROM_SEARCH');
+      expect(arguments['package'], 'com.google.android.youtube');
+      expect(arguments['arguments']['query'], 'taylor swift');
+    });
   });
 }
