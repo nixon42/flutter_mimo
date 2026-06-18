@@ -62,26 +62,14 @@ class AndroidIntentService implements IntentService {
               platform: _platform,
             );
           } else {
-            if (appName == 'youtube_music') {
-              // YouTube Music sering mengabaikan MEDIA_PLAY_FROM_SEARCH dari intent biasa,
-              // gunakan ACTION_SEARCH standar
-              intent = AndroidIntent(
-                action: 'android.intent.action.SEARCH',
-                package: targetPackage,
-                arguments: {'query': query},
-                flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
-                platform: _platform,
-              );
-            } else {
-              // Gunakan intent bawaan Android untuk "Play from Search" (bisa auto-play) untuk Spotify dkk
-              intent = AndroidIntent(
-                action: 'android.media.action.MEDIA_PLAY_FROM_SEARCH',
-                package: targetPackage,
-                arguments: {'query': query},
-                flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
-                platform: _platform,
-              );
-            }
+            // Gunakan intent bawaan Android untuk "Play from Search" (bisa auto-play)
+            intent = AndroidIntent(
+              action: 'android.media.action.MEDIA_PLAY_FROM_SEARCH',
+              package: targetPackage,
+              arguments: {'query': query},
+              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+              platform: _platform,
+            );
           }
           
           if (await intent.canResolveActivity() != true) {
@@ -158,7 +146,7 @@ class AndroidIntentService implements IntentService {
           int highestScore = 0;
 
           for (var s in songs) {
-            if (s.isMusic == false) continue; // Skip file sistem/notifikasi jika flag isMusic tersedia dan false
+            // Kita hapus filter s.isMusic == false agar file mp4 / non-standard music tetap terbaca
             
             int titleScore = calculateScore(s.title, query);
             int artistScore = s.artist != null ? calculateScore(s.artist!, query) : 0;
@@ -177,7 +165,7 @@ class AndroidIntentService implements IntentService {
           final intent = AndroidIntent(
             action: 'action_view',
             data: bestMatch.uri,
-            type: 'audio/*',
+            type: '*/*',
             flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
             platform: _platform,
           );
@@ -309,7 +297,7 @@ class AndroidIntentService implements IntentService {
 
     List<Map<String, dynamic>> results = [];
     for (var s in songs) {
-      if (s.isMusic == false) continue;
+      // Kita hapus filter s.isMusic == false agar file mp4 / non-standard music tetap terbaca
       
       int titleScore = calculateScore(s.title, keywords);
       int artistScore = s.artist != null ? calculateScore(s.artist!, keywords) : 0;
