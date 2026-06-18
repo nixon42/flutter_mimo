@@ -21,6 +21,11 @@ def test_tool_open_youtube_exists():
     sig = inspect.signature(tools.open_youtube)
     assert "query" in sig.parameters
 
+def test_tool_play_local_media_exists():
+    assert hasattr(tools, "play_local_media")
+    sig = inspect.signature(tools.play_local_media)
+    assert "query" in sig.parameters
+
 def test_tool_open_app_exists():
     assert hasattr(tools, "open_app")
     sig = inspect.signature(tools.open_app)

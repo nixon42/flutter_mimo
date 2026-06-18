@@ -24,6 +24,12 @@ def open_youtube(
     """Buka aplikasi YouTube dan cari video."""
     return {"query": query}
 
+def play_local_media(
+    query: str = Field(description="Kata kunci pencarian judul atau artis untuk file media lokal")
+) -> dict:
+    """Putar file musik atau video lokal yang ada di memori headunit."""
+    return {"query": query}
+
 def open_app(
     package_name: str = Field(description="Package name aplikasi Android"),
     uri: Optional[str] = Field(default=None, description="URI scheme opsional"),

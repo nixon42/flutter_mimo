@@ -76,6 +76,14 @@ async def open_youtube(
     return await _process_tool_call("open_youtube", payload)
 
 @mcp.tool()
+async def play_local_media(
+    query: str = Field(description="Kata kunci pencarian judul lagu atau artis")
+) -> str:
+    """Buka aplikasi pemutar media bawaan untuk memutar file lokal di headunit."""
+    payload = tools.play_local_media(query=query)
+    return await _process_tool_call("play_local_media", payload)
+
+@mcp.tool()
 async def open_app(
     package_name: str = Field(description="Package name aplikasi Android"),
     uri: Optional[str] = Field(default=None, description="URI scheme opsional"),

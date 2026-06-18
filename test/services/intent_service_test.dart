@@ -29,12 +29,55 @@ void main() {
           return null; // Return null to indicate success/void
         },
       );
+
+      // Register mock method call handler for on_audio_query
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('com.lucasjosino.on_audio_query'),
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'permissionsStatus') return true;
+          if (methodCall.method == 'querySongs') {
+            return [
+              {
+                '_id': 1,
+                '_data': '/sdcard/Music/test.mp3',
+                '_uri': 'content://media/external/audio/media/1',
+                '_display_name': 'test.mp3',
+                'title': 'Kangen',
+                'artist': 'Dewa 19',
+                'album': 'Bintang Lima',
+                'is_music': true,
+              }
+            ];
+          }
+          return null;
+        },
+      );
+
+      // Register mock method call handler for fluttertoast
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('PonnamKarthik/fluttertoast'),
+        (MethodCall methodCall) async {
+          return true;
+        },
+      );
     });
 
     tearDown(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
         const MethodChannel('dev.fluttercommunity.plus/android_intent'),
+        null,
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('com.lucasjosino.on_audio_query'),
+        null,
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('PonnamKarthik/fluttertoast'),
         null,
       );
     });
@@ -84,6 +127,22 @@ void main() {
       expect(arguments['action'], 'android.media.action.MEDIA_PLAY_FROM_SEARCH');
       expect(arguments['package'], 'com.google.android.youtube');
       expect(arguments['arguments']['query'], 'taylor swift');
+    });
+
+    test('play_local_media searches and launches intent with media URI', () async {
+      final success = await service.executeTool('play_local_media', {
+        'query': 'kangen',
+      });
+
+      expect(success, isNull);
+      
+      // Intent log check
+      expect(log, hasLength(2));
+      expect(log[1].method, 'launch');
+      final Map<dynamic, dynamic> arguments = log[1].arguments;
+      expect(arguments['action'], 'action_view');
+      expect(arguments['data'], 'content://media/external/audio/media/1');
+      expect(arguments['type'], 'audio/*');
     });
   });
 }
