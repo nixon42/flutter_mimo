@@ -59,7 +59,7 @@ async def open_navigation(
 
 @mcp.tool()
 async def open_music(
-    app: Literal["spotify"] = Field(description="Aplikasi musik"),
+    app: Literal["spotify", "youtube_music"] = Field(description="Aplikasi musik (spotify atau youtube_music)"),
     action: Literal["search"] = Field(description="Aksi pemutaran"),
     query: str = Field(description="Nama lagu, artis, atau playlist")
 ) -> str:

@@ -25,8 +25,15 @@ async def test_publish_command(mock_paho_client):
     
     bridge.publish_command(device_id, tool_name, payload)
     
-    expected_payload = json.dumps({"command": tool_name, "args": payload})
-    mock_paho_client.publish.assert_called_once_with(f"device/{device_id}/command", expected_payload)
+    mock_paho_client.publish.assert_called_once()
+    args, kwargs = mock_paho_client.publish.call_args
+    assert args[0] == f"car/{device_id}/cmd"
+    assert kwargs.get("qos") == 1
+    
+    sent_payload = json.loads(args[1])
+    assert "request_id" in sent_payload
+    assert sent_payload["command_type"] == tool_name
+    assert sent_payload["parameters"] == payload
 
 @pytest.mark.asyncio
 async def test_wait_for_ack_success(mock_paho_client):
@@ -40,7 +47,7 @@ async def test_wait_for_ack_success(mock_paho_client):
     
     # Simulate receiving a message from MQTT broker
     mock_message = MagicMock()
-    mock_message.topic = f"device/{device_id}/ack"
+    mock_message.topic = f"car/{device_id}/ack"
     mock_message.payload = json.dumps({"status": "success", "message": "Command executed"}).encode('utf-8')
     
     # Yield control so wait_task can start waiting
@@ -64,4 +71,4 @@ async def test_wait_for_ack_timeout(mock_paho_client):
     result = await bridge.wait_for_ack(device_id, timeout=0.1)
     
     assert result["status"] == "error"
-    assert "timeout" in result["message"].lower()
+    assert "offline" in result["message"].lower()
