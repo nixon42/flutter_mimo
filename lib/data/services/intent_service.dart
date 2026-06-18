@@ -62,14 +62,26 @@ class AndroidIntentService implements IntentService {
               platform: _platform,
             );
           } else {
-            // Gunakan intent bawaan Android untuk "Play from Search" (bisa auto-play)
-            intent = AndroidIntent(
-              action: 'android.media.action.MEDIA_PLAY_FROM_SEARCH',
-              package: targetPackage,
-              arguments: {'query': query},
-              flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
-              platform: _platform,
-            );
+            if (appName == 'youtube_music') {
+              // YouTube Music sering mengabaikan MEDIA_PLAY_FROM_SEARCH dari intent biasa,
+              // gunakan ACTION_SEARCH standar
+              intent = AndroidIntent(
+                action: 'android.intent.action.SEARCH',
+                package: targetPackage,
+                arguments: {'query': query},
+                flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+                platform: _platform,
+              );
+            } else {
+              // Gunakan intent bawaan Android untuk "Play from Search" (bisa auto-play) untuk Spotify dkk
+              intent = AndroidIntent(
+                action: 'android.media.action.MEDIA_PLAY_FROM_SEARCH',
+                package: targetPackage,
+                arguments: {'query': query},
+                flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
+                platform: _platform,
+              );
+            }
           }
           
           if (await intent.canResolveActivity() != true) {
