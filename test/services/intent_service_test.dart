@@ -138,7 +138,7 @@ void main() {
       expect(log[1].method, 'launch');
       final Map<dynamic, dynamic> arguments = log[1].arguments;
       expect(arguments['action'], 'action_view');
-      expect(arguments['data'], 'content://media/external/audio/media/1');
+      expect(arguments['data'], 'file:///sdcard/Music/test.mp3');
       expect(arguments['type'], '*/*');
     });
   });
