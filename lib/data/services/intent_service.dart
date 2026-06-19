@@ -163,13 +163,20 @@ class AndroidIntentService implements IntentService {
             return "File media dengan kata kunci '$query' tidak ditemukan di penyimpanan headunit.";
           }
 
-          // Menggunakan file:// scheme dengan absolute path agar semua player bisa memutarnya (terutama mp4/video)
-          final String targetUri = 'file://${bestMatch.data}';
+          // Karena _data bisa null di beberapa versi Android, kita pakai Content URI
+          final String targetUri = bestMatch.uri ?? 'content://media/external/audio/media/${bestMatch.id}';
+          
+          // Tebak tipe mime dari ekstensi nama file agar Video Player bisa membuka mp4
+          String mimeType = 'audio/*';
+          final String fileName = (bestMatch.displayName ?? bestMatch.title).toLowerCase();
+          if (fileName.endsWith('.mp4') || fileName.endsWith('.mkv') || fileName.endsWith('.avi')) {
+            mimeType = 'video/*';
+          }
 
           final intent = AndroidIntent(
             action: 'action_view',
             data: targetUri,
-            type: '*/*',
+            type: mimeType,
             flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
             platform: _platform,
           );
@@ -313,7 +320,7 @@ class AndroidIntentService implements IntentService {
           'title': s.title,
           'artist': s.artist ?? 'Unknown',
           'album': s.album ?? 'Unknown',
-          'uri': 'file://${s.data}',
+          'uri': s.uri ?? 'content://media/external/audio/media/${s.id}',
           'score': totalScore,
         });
       }
