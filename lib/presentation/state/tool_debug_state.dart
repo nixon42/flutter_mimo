@@ -1,0 +1,73 @@
+import 'package:flutter/foundation.dart';
+import '../../data/models/tool_log_entry.dart';
+import '../../data/services/intent_service.dart';
+import '../../data/services/contact_service.dart';
+
+class ToolDebugState extends ChangeNotifier {
+  final IntentService intentService;
+  final ContactService contactService;
+  final List<ToolLogEntry> _logs = [];
+
+  ToolDebugState({required this.intentService, required this.contactService});
+
+  List<ToolLogEntry> get logs => List.unmodifiable(_logs);
+
+  Future<void> triggerTool(String name, Map<String, dynamic> params) async {
+    final entry = ToolLogEntry(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      timestamp: DateTime.now(),
+      toolName: name,
+      parameters: params,
+    );
+    
+    _logs.insert(0, entry); // Insert at the beginning so newest is on top
+    notifyListeners();
+
+    // Show a toast immediately as requested
+    await intentService.showToast('Executing tool: $name');
+
+    try {
+      if (name == 'search_contact') {
+        try {
+          final query = params['query']?.toString() ?? '';
+          final contacts = await contactService.searchContacts(query);
+          final names = contacts.map((c) => c['name']).join(', ');
+          final msg = contacts.isEmpty ? 'No contacts found for "$query"' : 'Found ${contacts.length}: $names';
+          _updateLogStatus(entry.id, ToolLogStatus.success, msg);
+          return;
+        } catch (e) {
+          _updateLogStatus(entry.id, ToolLogStatus.error, e.toString());
+          return;
+        }
+      } else {
+        final errorMsg = await intentService.executeTool(name, params);
+        if (errorMsg == null) {
+          _updateLogStatus(entry.id, ToolLogStatus.success, 'Successfully executed $name');
+        } else {
+          _updateLogStatus(entry.id, ToolLogStatus.error, errorMsg);
+        }
+      }
+    } catch (e) {
+      _updateLogStatus(entry.id, ToolLogStatus.error, e.toString());
+    }
+  }
+
+  void _updateLogStatus(String id, ToolLogStatus status, String message) {
+    final index = _logs.indexWhere((log) => log.id == id);
+    if (index != -1) {
+      _logs[index].status = status;
+      _logs[index].resultMessage = message;
+      notifyListeners();
+    }
+  }
+
+  void addLogEntry(ToolLogEntry entry) {
+    _logs.insert(0, entry);
+    notifyListeners();
+  }
+
+  void clearLogs() {
+    _logs.clear();
+    notifyListeners();
+  }
+}
