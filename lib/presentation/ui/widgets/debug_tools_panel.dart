@@ -60,6 +60,9 @@ class DebugToolsPanel extends StatelessWidget {
               _buildToolButton('Open Music', () {
                 state.triggerTool('open_music', {'app': 'spotify', 'action': 'play_song', 'query': 'top 50 indonesia'});
               }),
+              _buildToolButton('Open YouTube', () {
+                state.triggerTool('open_youtube', {'query': 'doraemon'});
+              }),
               _buildToolButton('Play Local Media', () {
                 state.triggerTool('play_local_media', {'query': 'Linking park'});
               }),
