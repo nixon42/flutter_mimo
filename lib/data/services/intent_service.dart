@@ -92,9 +92,9 @@ class AndroidIntentService implements IntentService {
             );
           } else {
             intent = AndroidIntent(
-              action: 'android.media.action.MEDIA_PLAY_FROM_SEARCH',
+              action: 'action_view',
+              data: 'https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}',
               package: targetPackage,
-              arguments: {'query': query},
               flags: const [Flag.FLAG_ACTIVITY_NEW_TASK, Flag.FLAG_ACTIVITY_CLEAR_TOP],
               platform: _platform,
             );

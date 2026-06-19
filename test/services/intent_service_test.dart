@@ -115,18 +115,15 @@ void main() {
       expect(arguments['category'], isNull);
     });
 
-    test('open_youtube launches com.google.android.youtube', () async {
-      final success = await service.executeTool('open_youtube', {
-        'query': 'taylor swift',
-      });
-
-      expect(success, isNull);
-      expect(log, hasLength(2));
-      expect(log[1].method, 'launch');
-      final Map<dynamic, dynamic> arguments = log[1].arguments;
-      expect(arguments['action'], 'android.media.action.MEDIA_PLAY_FROM_SEARCH');
+    test('open_youtube launches com.google.android.youtube with search query', () async {
+      await service.executeTool('open_youtube', {'query': 'doraemon'});
+      
+      final MethodCall methodCall = log.last;
+      expect(methodCall.method, 'launch');
+      final Map<dynamic, dynamic> arguments = log.last.arguments;
+      expect(arguments['action'], 'action_view');
       expect(arguments['package'], 'com.google.android.youtube');
-      expect(arguments['arguments']['query'], 'taylor swift');
+      expect(arguments['data'], 'https://www.youtube.com/results?search_query=doraemon');
     });
 
     test('play_local_media searches and launches intent with media URI', () async {
